@@ -1,2 +1,2 @@
-# antFTP
+# AprilFTP
 A lightweight FTP
