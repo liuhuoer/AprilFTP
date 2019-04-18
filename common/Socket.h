@@ -1,7 +1,7 @@
 #ifndef _SOCKET_H_
 #define _SOCKET_H_
 
-#include "common.h"
+#include "Common.h"
 
 class Socket
 {
@@ -14,6 +14,7 @@ public:
         this->host = host;
         this->port = port;
     }
+    int                 init();
 private:
     SockType            socktype;
     const char *        host;
