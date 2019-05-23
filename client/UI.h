@@ -6,21 +6,30 @@
 #include "CliPI.h"
 using namespace std;
 
-typedef struct command
+struct Command
 {
 private:
     short int               id;
     std::vector<string>     argVec;
-}Command;
+};
 
+// User Interface
 class UI
 {
 public:
     UI(const char * host);          //#!!
-    void                     run(); //#!!
+    void                    run(); //#!!
 private:
-    uint16_t                 cmdid;
-    CliPI                    cliPI;
+    std::vector<string>     cmdVector;
+    uint16_t                cmdid;
+    CliPI                   cliPI;
+    string                  username;
+
+    static map<const string, const uint16_t> cmdMap;
+
+    void                    cmdRun(string &);
+    bool                    cmdCheck();
+    string                  toUpper(string &);
 };
 
 #endif

@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "name": "MinGW",
+            "compilerPath": "D:/MinGW/bin/g++.exe",
+            "includePath": [
+                "${workspaceFolder}",
+                "D:/MinGW/bin/../lib/gcc/mingw32/6.3.0/include/c++",
+                "D:/MinGW/bin/../lib/gcc/mingw32/6.3.0/include/c++/mingw32",
+                "D:/MinGW/bin/../lib/gcc/mingw32/6.3.0/include/c++/backward",
+                "D:/MinGW/bin/../lib/gcc/mingw32/6.3.0/include",
+                "D:/MinGW/bin/../lib/gcc/mingw32/6.3.0/../../../../include",
+                "D:/MinGW/bin/../lib/gcc/mingw32/6.3.0/include-fixed",
+                "D:/MinGW/bin/../lib/gcc/mingw32/6.3.0/../../../../mingw32/include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ]
+        }
+    ],
+    "version": 4
+}
