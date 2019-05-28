@@ -31,7 +31,7 @@ bool CliPI::recvOnePacket()
 bool CliPI::sendOnePacketBlocked(PacketStruct * ps, size_t nbytes)
 {
     int m;
-    if( (m = connSockStream.writen(pa, nbytes)) < 0 || (size_t)m != nbytes)
+    if( (m = connSockStream.writen(ps, nbytes)) < 0 || (size_t)m != nbytes)
     {
         this->saveUserState();
         Socket::tcpClose(connfd);
@@ -71,7 +71,7 @@ bool CliPI::sendOnePacket(PacketStruct * ps, size_t nbytes)
         if(FD_ISSET(connfd, &rset))
         {
             readpacket.reset(NPACKET);
-            if( (n = connSocketStream.readn(readpacket.getPs(), PACKSIZE)) == 0)
+            if( (n = connSockStream.readn(readpacket.getPs(), PACKSIZE)) == 0)
             {
                 this->saveUserState();
                 Socket::tcpClose(connfd);
@@ -112,7 +112,7 @@ bool CliPI::sendOnePacket(PacketStruct * ps, size_t nbytes)
 }
  
 
-bool CliPI::run(uint16 cmdid, std::vector<string> & paramVector)
+void CliPI::run(uint16_t cmdid, std::vector<string> & paramVector)
 {
     switch(cmdid)
     {
@@ -187,7 +187,7 @@ bool CliPI::cmdPASS(std::vector<string> & paramVector)
     recvOnePacket();
     if(packet.getTagid() == TAG_STAT)
     {
-        if(packet.getStatid() == STAG_OK)
+        if(packet.getStatid() == STAT_OK)
         {
             //init userID, same as session id
             char buf[MAXLINE];
@@ -209,6 +209,12 @@ bool CliPI::cmdPASS(std::vector<string> & paramVector)
         return false;
     }
 }
+
+int CliPI::getConnfd()
+{
+    return this->connfd;
+}
+
 
 void CliPI::saveUserState()
 {

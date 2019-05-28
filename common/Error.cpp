@@ -4,7 +4,7 @@ bool Error::daemon_proc = false;
 
 /* Nofatal error related to syetem call
  * * Print message and return */
-void Error::ret(const char * fmt, ...);
+void Error::ret(const char * fmt, ...)
 {
     va_list         ap;
 
@@ -29,7 +29,7 @@ void Error::sys(const char * fmt, ...)
 
 /* Nofatal error unrelated to system call
  * * Print message, and return*/
-void Error::msg(const char * fmt, ...);
+void Error::msg(const char * fmt, ...)
 {
     va_list         ap;
 
@@ -41,7 +41,7 @@ void Error::msg(const char * fmt, ...);
 
 /* Fatal error related to system call
  * * Print message and terminate*/
-void Error::quit(const char * fmt, ...);
+void Error::quit(const char * fmt, ...)
 {
     va_list         ap;
 
@@ -51,7 +51,7 @@ void Error::quit(const char * fmt, ...);
     pthread_exit((void *)1);
 }
 
-void Error::quit_pthread(const char * fmt, ...);
+void Error::quit_pthread(const char * fmt, ...)
 {
     va_list         ap;
 

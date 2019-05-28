@@ -53,10 +53,10 @@ again:
 void Socket::tcpBind(int fd, const sockaddr *sa, socklen_t salen)
 {
     if(bind(fd, sa, salen) < 0)
-        error::sys("bind error");
+        Error::sys("bind error");
 }
 
-vod Socket::tcpConnect(int fd,const sockaddr *sa, socklen_t salen)
+void Socket::tcpConnect(int fd,const sockaddr *sa, socklen_t salen)
 {
     if(connect(fd, sa, salen) < 0)
         Error::sys("connect error");
@@ -84,14 +84,14 @@ ssize_t Socket::tcpRecv(int fd, void *ptr, size_t nbytes, int flags)
 
 void Socket::tcpSend(int fd, const void *ptr, size_t nbytes, int flags)
 {
-    if(send(fd, ptr, nbytes, flags) != (ssize)nbytes)
+    if(send(fd, ptr, nbytes, flags) != (ssize_t)nbytes)
         Error::sys("send error");
 }
 
 void Socket::tcpSetsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen)
 {
     if(setsockopt(fd, level, optname, optval, optlen) < 0)
-        Error::sys(setsockopt error);
+        Error::sys("setsockopt error");
 }
 
 void Socket::tcpShutdown(int fd, int how)

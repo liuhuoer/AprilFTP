@@ -1,5 +1,5 @@
 #include "UI.h"
-#include "../common/error.h"
+#include "../common/Error.h"
 #include <cstdio>
 
 int main(int argc, char **argv)

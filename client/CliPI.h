@@ -1,7 +1,9 @@
 #ifndef _CLIPI_H_
 #define _CLIPI_H_
 
+#include "../common/Common.h"
 #include "../common/Socket.h"
+#include "../common/SockStream.h"
 #include "../common/Packet.h"
 
 // Client Protocol Interpreter(CliPI)
@@ -17,6 +19,8 @@ public:
 
     bool cmdUSER(std::vector<string> & cmdVector);
     bool cmdPASS(std::vector<string> & cmdVector);
+
+    int getConnfd();
 
 private:
     void saveUserState();

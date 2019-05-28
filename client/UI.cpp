@@ -4,7 +4,7 @@
 map<const string, const uint16_t> UI::cmdMap = {
     {"USER",        USER},
     {"PASS",        PASS}
-}
+};
 
 
 UI::UI(const char *host) : cliPI(host)
@@ -58,7 +58,7 @@ void UI::run()
     //!!
     int             maxfdp1;
     fd_set          rset;
-    int             cliPI.getConnfd();
+    int connfd = cliPI.getConnfd();
     
     FD_ZERO(&rset);
 
@@ -67,7 +67,7 @@ void UI::run()
     {
         fflush(stdout);
         FD_SET(connfd, &rset);
-        FD_SET(fileno(stdio), &rset);
+        FD_SET(fileno(stdin), &rset);
         maxfdp1 = connfd + 1;
         if(select(maxfdp1, &rset, NULL, NULL, NULL) < 0)
             Error::sys("select error");

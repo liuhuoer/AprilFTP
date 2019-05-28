@@ -38,6 +38,17 @@ void Packet::fillCmd(uint16_t cmdid, uint16_t bsize, const char * body)
     fill(TAG_CMD, cmdid, 0, 0, 0, 0, bsize, body);
 }
 
+void Packet::fillStat(uint16_t statid, uint16_t bsize, const char * body)
+{
+    fill(TAG_STAT, 0, statid, 0, 0, 0, bsize, body);
+}
+
+
+void Packet::setSessionID(uint32_t sesid)
+{
+    ps->sesid = sesid;
+}
+
 // !!
 void Packet::reset(PacketStoreType pstype)
 {
@@ -77,18 +88,18 @@ void Packet::savePacketState()
     prePs->statid = ps->statid;
     prePs->dataid = ps->dataid;
 
-    pre->nslice = ps->nslice;
-    pre->sindex = ps->nslice;
-    pre->bsize = ps->bsize;
+    prePs->nslice = ps->nslice;
+    prePs->sindex = ps->nslice;
+    prePs->bsize = ps->bsize;
 }
 
-void sendCMD(uint16_t cmdid, string sbody)
+void Packet::sendCMD(uint16_t cmdid, string sbody)
 {
     // send OPHEADSIZEK
     this->reset(HPACKET);
     this->fillCmd(cmdid, sbody.size(), sbody.c_str());
     this->htonp();
-    ppi->sendOnePacket(this->ps, PACKETSIZE);
+    ppi->sendOnePacket(this->ps, PACKSIZE);
 }
 
 void Packet::ntohp()
@@ -105,7 +116,7 @@ void Packet::ntohp()
     ps->statid = ntohs(ps->statid);
     ps->dataid = ntohs(ps->dataid);
 
-    ps->nslice = ntohl(ps->slice);
+    ps->nslice = ntohl(ps->nslice);
     ps->sindex = ntohl(ps->sindex);
     ps->bsize = ntohs(ps->bsize);
 
@@ -126,15 +137,122 @@ void Packet::htonp()
     ps->statid = htons(ps->statid);
     ps->dataid = htons(ps->dataid);
 
-    ps->nslice = htonl(ps->slice);
+    ps->nslice = htonl(ps->nslice);
     ps->sindex = htonl(ps->sindex);
-    ps->bsize = htons(ps->bsize());
+    ps->bsize = htons(ps->bsize);
 
     this->pstype = NPACKET;
 }
 
+void Packet::print()
+{
+    if(!DEBUG)
+        return;
+    
+    if(pstype == HPACKET)
+    {
+        printf("\t\t[HOST Packet: %p]\n", ps);
+    }else if(pstype ==NPACKET){
+        printf("\t\t[NETWORK Packet: %p]\n", ps);
+    }else{
+        Error::msg("unknown PacketStoreType\n");
+        return;
+    }
 
-PacketStruct * packet::getPs()
+    printf("\t\tsesid = %u\n", ps->sesid);
+    printf("\t\ttagid = %d\n", ps->tagid);
+    printf("\t\tcmdid = %d\n", ps->cmdid);
+    printf("\t\tstatid = %d\n", ps->statid);
+    printf("\t\tdataid = %d\n", ps->dataid);
+    printf("\t\tnslice = %u\n", ps->nslice);
+    printf("\t\tsindex = %u\n", ps->sindex);
+    printf("\t\tbsize = %d\n", ps->bsize);
+    if(pstype == HPACKET)
+    {
+        printf("\t\tbody = %s\n", this->getSBody().c_str());
+    }
+
+    fflush(stdout);
+}
+
+void Packet::pprint()
+{
+    printf("\t\t[Previous HOST Packet: %p]\n", prePs);
+    printf("\t\tsesid = %u\n", ps->sesid);
+    printf("\t\ttagid = %d\n", ps->tagid);
+    printf("\t\tcmdid = %d\n", ps->cmdid);
+    printf("\t\tstatid = %d\n", ps->statid);
+    printf("\t\tdataid = %d\n", ps->dataid);
+    printf("\t\tnslice = %u\n", ps->nslice);
+    printf("\t\tsindex = %u\n", ps->sindex);
+    printf("\t\tbsize = %d\n", ps->bsize);
+
+    fflush(stdout);
+}
+
+void Packet::sendSTAT_OK()
+{
+    this->reset(HPACKET);
+    char buf[MAXLINE];
+    snprintf(buf, MAXLINE, "\033[32mOK to transfer\033[0m");
+    this->fillStat(STAT_OK, strlen(buf), buf);
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
+void Packet::sendSTAT_OK(const char * msg)
+{
+    this->reset(HPACKET);
+    char buf[MAXLINE];
+    snprintf(buf, MAXLINE, "\033[32m%s\033[0m", msg);
+    this->fillStat(STAT_OK, strlen(buf), buf);
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+
+}
+
+void Packet::sendSTAT_OK(string msg)
+{
+    this->reset(HPACKET);
+    char buf[MAXLINE];
+    snprintf(buf, MAXLINE, "\033[32m%s\033[0m", msg.c_str());
+    this->fillStat(STAT_OK, strlen(buf), buf);
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+
+}
+
+void Packet::sendSTAT_ERR()
+{
+    this->reset(HPACKET);
+    char buf[MAXLINE];
+    snprintf(buf, MAXLINE, "\033[31mError occurred\033[0m");
+    this->fillStat(STAT_ERR, strlen(buf), buf);
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
+void Packet::sendSTAT_ERR(const char * msg)
+{
+    this->reset(HPACKET);
+    char buf[MAXLINE];
+    snprintf(buf, MAXLINE, "\033[31m%s\033[0m", msg);
+    this->fillStat(STAT_ERR, strlen(buf), buf);
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
+void Packet::sendSTAT_ERR(string msg)
+{
+    this->reset(HPACKET);
+    char buf[MAXLINE];
+    snprintf(buf, MAXLINE, "\033[31m%s\033[0m", msg.c_str());
+    this->fillStat(STAT_ERR, strlen(buf), buf);
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
+PacketStruct * Packet::getPs()
 {
     return ps;
 }
@@ -154,7 +272,7 @@ uint16_t Packet::getCmdid()
     return ps->cmdid;
 }
 
-uint16_t Packet::Statid()
+uint16_t Packet::getStatid()
 {
     return ps->statid;
 }
@@ -190,3 +308,65 @@ std::string Packet::getSBody()
     strncpy(buf, ps->body, ps->bsize);
     return string(buf);
 }
+
+
+PacketStruct * Packet::getPrePs()
+{
+    return prePs;
+}
+
+uint32_t Packet::getPreSesid()
+{
+    return prePs->sesid;
+}
+
+uint16_t Packet::getPreTagid()
+{
+    return prePs->tagid;
+}
+
+uint16_t Packet::getPreCmdid()
+{
+    return prePs->cmdid;
+}
+
+uint16_t Packet::getPreStatid()
+{
+    return prePs->statid;
+}
+
+uint16_t Packet::getPreDataid()
+{
+    return prePs->dataid;
+}
+
+uint32_t Packet::getPreNslice()
+{
+    return prePs->nslice;
+}
+
+
+string Packet::getPreSNslice()
+{
+    char buf[MAXLINE] = {0};
+    snprintf(buf, MAXLINE, "%u", prePs->nslice);
+    return string(buf);
+}
+
+uint32_t Packet::getPreSindex()
+{
+    return prePs->sindex;
+}
+
+string Packet::getPreSSindex()
+{
+    char buf[MAXLINE] = {0};
+    snprintf(buf, MAXLINE, "%u", prePs->sindex);
+    return string(buf);
+}
+
+uint16_t Packet::getPreBsize()
+{
+    return prePs->bsize;
+}
+

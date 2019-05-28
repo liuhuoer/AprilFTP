@@ -1,9 +1,14 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
+#include <sys/file.h>
 #include <netinet/in.h>     //sockaddr_in and other
 #include <arpa/inet.h>      //inet(3) function
 #include <sys/socket.h>
+#include <openssl/md5.h>
+
+#include <unistd.h>         //select() and FD_ZERO, FD_SET and close()
+
 
 #include <cstdio>
 #include <cstring>
@@ -15,7 +20,26 @@
 #include <sstream>
 using namespace std;
 
+#define DEBUG       1
+#define DBFILENAME  "AprilFTP.db"
+#define ROOTDIR     "/home/AprilFTP"
+#define ROOTDIR_LEN strlen(ROOTDIR)
+
+#define PASSSALT0   "&5@f#fe)"
+#define PASSSALT1   "@aprilFTP"
+
 #define DELIMITER   "\x1F"
+
+// MACRO constants
+#define LISTENQ         1024            // 2nd argument(backlog) to listen()
+
+// Miscellaneous constants
+#define MAXLINE         256             // max text line length
+
+#define CTRPORT         2121            // server: control listening port
+#define DATPORT         2020            // server: data listening port
+
+
 #define SA sockaddr
 
 enum SockType
@@ -58,8 +82,10 @@ struct PacketStruct
 
     uint16_t bsize;     // the real size of body
     // packet body
-    char body[PBODYCAP] // packet body
+    char body[PBODYCAP];// packet body
 };
+
+#define PACKSIZE sizeof(PacketStruct)
 
 enum TagID
 {
@@ -76,7 +102,13 @@ enum CmdID
 
 enum StatID
 {
-    STAT_OK = 1
+    STAT_OK = 1,
+    STAT_BPR,   // breakpoint resume
+    STAT_CFM,   //confirm
+    STAT_MD5,   //md5sum
+    STAT_PGS,   //progress
+    STAT_FAIL,  //fail
+    STAT_ERR,   //error
 };
 
 enum DataID
@@ -87,6 +119,14 @@ enum DataID
 /*****************************************************
  ********************** functions ********************
  ****************************************************/
+void Fclose(FILE *fp);
+void Fclose(FILE **fp);
+
+
+void * Malloc(size_t size);
+string md5sum(const char * str, int len);
+string md5sumNslice(const char * pathname, uint32_t nslice);
+string encryptPassword(string password);
 
 
 #endif
