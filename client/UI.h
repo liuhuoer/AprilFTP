@@ -1,8 +1,9 @@
 #ifndef _UI_H_
 #define _UI_H_
 
-#include <vector>
-#include <string>
+#include "../common/Common.h"
+#include "../common/Error.h"
+#include "../common/SockStream.h"
 #include "CliPI.h"
 using namespace std;
 

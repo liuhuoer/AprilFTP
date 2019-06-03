@@ -23,12 +23,12 @@ public:
     /* Wrapper for readn */
     ssize_t Readn(void * ptr, size_t nbytes);
 
-    /* Wrapper for writen */
-    void Writen(void * ptr, size_t nbytes);
 
     /* Write "n" bytes to a descriptor */
     ssize_t writen(const void * vptr, size_t n);
 
+    /* Wrapper for writen */
+    void Writen(void * ptr, size_t nbytes);
     /* bytes remained in read buffer. */
     ssize_t readlineBuf(void ** vptrptr);
 

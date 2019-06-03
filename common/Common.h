@@ -1,11 +1,15 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
+#include <sys/types.h>
+#include <sys/stat.h>       //mkdir()
 #include <sys/file.h>
 #include <netinet/in.h>     //sockaddr_in and other
 #include <arpa/inet.h>      //inet(3) function
+#include <netdb.h>
 #include <sys/socket.h>
 #include <openssl/md5.h>
+#include <dirent.h>         //Dir, opendir() and closedir()
 
 #include <unistd.h>         //select() and FD_ZERO, FD_SET and close()
 
@@ -21,12 +25,16 @@
 using namespace std;
 
 #define DEBUG       1
+
 #define DBFILENAME  "AprilFTP.db"
 #define ROOTDIR     "/home/AprilFTP"
 #define ROOTDIR_LEN strlen(ROOTDIR)
+#define KERNELDIR   "/home/AprilFTP/.AprilFTP/"
+#define GHOSTDIR    "/home/AprilFTP/.AprilFTP/ghost"
 
 #define PASSSALT0   "&5@f#fe)"
-#define PASSSALT1   "@aprilFTP"
+//#define PASSSALT1   "@AprilFTP"
+#define PASSSALT1   "@tinyFTP"
 
 #define DELIMITER   "\x1F"
 

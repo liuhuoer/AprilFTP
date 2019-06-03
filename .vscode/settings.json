@@ -1,0 +1,6 @@
+// 文件路径改为synthwave84.css的文件所在路径
+{
+    "vscode_custom_css.imports":[
+        "file:///User/wmr/synthwave84.css"
+    ]
+}

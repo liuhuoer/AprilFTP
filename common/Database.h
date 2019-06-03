@@ -5,6 +5,7 @@
 #include "Error.h"
 #include <sqlite3.h>
 
+
 class Database
 {
 public:
@@ -20,6 +21,7 @@ public:
     void printResult();
 
 private:
+    string dbFilename;
     string sqlSring;
     sqlite3 * pDb;
     char * zErrMsg;

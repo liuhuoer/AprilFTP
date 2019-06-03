@@ -83,6 +83,8 @@ void * Malloc(size_t size)
 string encryptPassword(string password)
 {
     string saltedPass = PASSSALT0 + password + PASSSALT1;
+    cout << "*****saltedPass_before: " << saltedPass << endl;
     saltedPass = md5sum(saltedPass.c_str(), saltedPass.size());
+    cout << "*****saltedPass_after: " << saltedPass << endl;
     return saltedPass;
 }

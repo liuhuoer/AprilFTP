@@ -100,6 +100,7 @@ void Packet::sendCMD(uint16_t cmdid, string sbody)
     this->fillCmd(cmdid, sbody.size(), sbody.c_str());
     this->htonp();
     ppi->sendOnePacket(this->ps, PACKSIZE);
+    cout << "Packet::sendCMD\n" << endl;
 }
 
 void Packet::ntohp()

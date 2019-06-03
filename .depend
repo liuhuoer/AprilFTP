@@ -13,15 +13,16 @@ SrvDTP.o: server/SrvDTP.cpp server/SrvDTP.h server/../common/Common.h \
  server/../common/Packet.h server/../common/Error.h server/../common/PI.h \
  server/../common/Socket.h server/../common/SockStream.h server/SrvPI.h \
  server/../common/Database.h server/../common/PI.h
-UI.o: client/UI.cpp client/UI.h client/CliPI.h client/../common/Common.h \
- client/../common/Socket.h client/../common/Common.h \
- client/../common/Error.h client/../common/SockStream.h \
- client/../common/Packet.h client/../common/PI.h
-Client.o: client/Client.cpp client/UI.h client/CliPI.h \
- client/../common/Common.h client/../common/Socket.h \
- client/../common/Common.h client/../common/Error.h \
- client/../common/SockStream.h client/../common/Packet.h \
- client/../common/PI.h client/../common/Error.h
+UI.o: client/UI.cpp client/UI.h client/../common/Common.h \
+ client/../common/Error.h client/../common/Common.h \
+ client/../common/SockStream.h client/../common/Error.h client/CliPI.h \
+ client/../common/Socket.h client/../common/Packet.h \
+ client/../common/PI.h
+Client.o: client/Client.cpp client/UI.h client/../common/Common.h \
+ client/../common/Error.h client/../common/Common.h \
+ client/../common/SockStream.h client/../common/Error.h client/CliPI.h \
+ client/../common/Socket.h client/../common/Packet.h \
+ client/../common/PI.h
 CliPI.o: client/CliPI.cpp client/CliPI.h client/../common/Common.h \
  client/../common/Socket.h client/../common/Common.h \
  client/../common/Error.h client/../common/SockStream.h \

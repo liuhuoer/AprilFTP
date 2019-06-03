@@ -12,6 +12,7 @@ bool CliPI::recvOnePacket()
 {
     int n;
     packet.reset(NPACKET);
+    printf("CliPI::recvOnePacket1\n");
     if( (n = connSockStream.readn(packet.getPs(), PACKSIZE)) == 0)
     {
         this->saveUserState();
@@ -45,6 +46,7 @@ bool CliPI::sendOnePacketBlocked(PacketStruct * ps, size_t nbytes)
 
 bool CliPI::sendOnePacket(PacketStruct * ps, size_t nbytes)
 {
+    cout << "CliPI::sendONePacket1" << endl;
     int n, m;
     bool sendFlag = false;
     int maxfdp1;
@@ -94,9 +96,11 @@ bool CliPI::sendOnePacket(PacketStruct * ps, size_t nbytes)
                 }
             }
         }
+        cout << "CliPI::sendONePacket2" << endl;
         //socket is writable
         if(FD_ISSET(connfd, &wset))
         {
+            cout << "CliPI::sendONePacket2.1" << endl;
             if( (m = connSockStream.writen(ps, nbytes)) < 0 || (size_t)m != nbytes)
             {
                 this->saveUserState();
@@ -104,9 +108,11 @@ bool CliPI::sendOnePacket(PacketStruct * ps, size_t nbytes)
                 Error::ret("connSockStream.writen()");
                 Error::quit_pthread("socket connection exception");
             }else{
+                cout << "CliPI::sendONePacket2.3" << endl;
                 sendFlag = true;
             }
         }
+        cout << "CliPI::sendONePacket3" << endl;
     }
     return true;
 }
@@ -133,11 +139,20 @@ string CliPI::getEncodedParams(std::vector<string> & paramVector)
     string encodedParams;
     if(!paramVector.empty())
     {
+        /*
         for(vector<string>::iterator iter = paramVector.begin(); iter != paramVector.end(); ++iter)
         {
             encodedParams += DELIMITER + *iter;
         }
+        */
+        vector<string>::iterator iter = paramVector.begin();
+        encodedParams += *iter;
+        for(++iter; iter != paramVector.end(); ++iter)
+        {
+            encodedParams += DELIMITER + *iter;
+        }
     }
+
     return encodedParams;
 }
 
@@ -171,6 +186,7 @@ bool CliPI::cmdUSER(std::vector<string> & paramVector)
 
 bool CliPI::cmdPASS(std::vector<string> & paramVector)
 {
+    printf("CliPI::cmdPASS1\n");
     if(paramVector.empty() || paramVector.size() != 2)
     {
         Error::msg("Usage: [password]");
@@ -180,11 +196,15 @@ bool CliPI::cmdPASS(std::vector<string> & paramVector)
         }
         return false;
     }
+    printf("CliPI::cmdPASS2\n");
     paramVector[1] = encryptPassword(paramVector[1]);
+    printf("CliPI::cmdPASS2.1\n");
     packet.sendCMD(PASS, getEncodedParams(paramVector));
 
+    paramVector[1] = encryptPassword(paramVector[1]);
     //first receive response
     recvOnePacket();
+    printf("CliPI::cmdPASS3\n");
     if(packet.getTagid() == TAG_STAT)
     {
         if(packet.getStatid() == STAT_OK)

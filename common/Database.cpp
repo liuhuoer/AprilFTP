@@ -1,5 +1,7 @@
 #include "Database.h"
 
+
+
 static int callback(void * pDatabase, int argc, char ** argv, char ** azColName)
 {
     if(pDatabase != NULL)
@@ -13,6 +15,61 @@ static int callback(void * pDatabase, int argc, char ** argv, char ** azColName)
         resultMapVector.push_back(kvMap);
     }
     return 0;
+}
+
+Database::Database(const char * zDbFilename) : dbFilename(zDbFilename)
+{
+    DIR * d = opendir(ROOTDIR);
+    if(d)
+    {
+        fprintf(stderr, "Already exists: %s\n", ROOTDIR);
+        closedir(d);
+    }else if(mkdir(ROOTDIR, 0777) == -1){
+        char buf[MAXLINE];
+        fprintf(stdout, "Error(%s): %s\n", ROOTDIR, strerror_r(errno, buf, MAXLINE));
+    }else{
+        fprintf(stdout, "Driectory created: %s\n");
+    }
+
+    // create AprilFTP/.AprilFTP/ working directory
+    d = opendir(KERNELDIR);
+    if(d)
+    {
+        fprintf(stderr, "Already exists: %s\n", KERNELDIR);
+        closedir(d);
+    }else if(mkdir(KERNELDIR, 0777) == -1){
+        char buf[MAXLINE];
+        fprintf(stdout, "Error(%s): %s\n", KERNELDIR, strerror_r(errno, buf, MAXLINE));
+    }else{
+        fprintf(stdout, "Directory created: %s\n", KERNELDIR);
+    }
+
+    //create AprilFTP/.AprilFTP/ghost working directory
+    d = opendir(GHOSTDIR);
+    if(d)
+    {
+        fprintf(stderr, "Already exists: %s\n", GHOSTDIR);
+        closedir(d);
+    }else if(mkdir(GHOSTDIR, 0777) == -1){
+        char buf[MAXLINE];
+        fprintf(stdout, "Error(%s): %s\n", GHOSTDIR, strerror_r(errno, buf, MAXLINE));
+    }else{
+        fprintf(stdout, "Directory created: %s\n", GHOSTDIR);
+    }
+
+    //clean()
+    zErrMsg = NULL;
+    /* open database */
+    string dirString = KERNELDIR;
+    rc = sqlite3_open((dirString + dbFilename).c_str(), &pDb);
+    if(rc)
+    {
+        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(pDb));
+        exit(0);
+    }else{
+        fprintf(stdout, "Open database successfully: %s\n", (dirString + dbFilename).c_str());
+    }
+    
 }
 
 

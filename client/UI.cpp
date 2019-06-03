@@ -20,24 +20,32 @@ void UI::run()
     //log-in
     while(printf("Username for 'tinyFTP':"), getline(std::cin, inputline))
     {
+        printf("UI::UI()0\n");
         this->cmdVector.clear();
 
+        printf("UI::UI()1\n");
         std::istringstream is(inputline);
         while(is >> word)
             this->cmdVector.push_back(word);
         
+        printf("UI::UI()2\n");
         if(this->cmdVector.empty())
         {
+            printf("UI::UI()2.1\n");
             this->cmdVector.push_back("anonymous");
             this->cmdVector.push_back("anonymous");
+            printf("UI::UI()2.2\n");
             if(!cliPI.cmdPASS(this->cmdVector))
             {
+                printf("UI::UI()2.3\n");
                 continue;
             }else{
+                printf("UI::UI()2.4\n");
                 break;
             }
         }
 
+        printf("UI::UI()3\n");
         if(!cliPI.cmdUSER(this->cmdVector))
         {
             continue;
