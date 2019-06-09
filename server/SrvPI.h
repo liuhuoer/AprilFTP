@@ -18,7 +18,6 @@ public:
     bool sendOnePacketBlocked(PacketStruct * ps, size_t nbytes);
     bool sendOnePacket(PacketStruct * ps, size_t nbytes);
     void run();
-    void split(std::string src, std::string token, vector<string> & vect);
 
     void cmdUSER();
     void cmdPASS();

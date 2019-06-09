@@ -43,6 +43,11 @@ void Packet::fillStat(uint16_t statid, uint16_t bsize, const char * body)
     fill(TAG_STAT, 0, statid, 0, 0, 0, bsize, body);
 }
 
+void Packet::fillData(uint16_t dataid, uint32_t nslice, uint32_t sindex, uint16_t bsize, const char * body)
+{
+    fill(TAG_DATA, 0, 0, dataid, nslice, sindex, bsize, body);
+}
+ 
 
 void Packet::setSessionID(uint32_t sesid)
 {
@@ -101,6 +106,14 @@ void Packet::sendCMD(uint16_t cmdid, string sbody)
     this->htonp();
     ppi->sendOnePacket(this->ps, PACKSIZE);
     cout << "Packet::sendCMD\n" << endl;
+}
+
+void Packet::sendDATA_FILE(uint32_t nslice, uint32_t sindex, uint16_t bsize, const char * body)
+{
+    this->reset(HPACKET);
+    this->fillData(DATA_FILE, nslice, sindex, bsize, body);
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
 }
 
 void Packet::ntohp()
@@ -223,6 +236,38 @@ void Packet::sendSTAT_OK(string msg)
 
 }
 
+void Packet::sendSTAT_MD5(string body)
+{
+    this->reset(HPACKET);
+    this->fillStat(STAT_MD5, body.size(), body.c_str());
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
+void Packet::sendSTAT_CFM(const char * msg)
+{
+    // send CFM
+    this->reset(HPACKET);
+    char buf[MAXLINE];
+    snprintf(buf, MAXLINE, "%s", msg);
+    this->fillStat(STAT_CFM, strlen(buf), buf);
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
+void Packet::sendSTAT_CFM(string msg)
+{
+    // send CFM
+    this->reset(HPACKET);
+    char buf[MAXLINE];
+    snprintf(buf, MAXLINE, "%s", msg.c_str());
+    this->fillStat(STAT_CFM, strlen(buf), buf);
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
+
+
 void Packet::sendSTAT_ERR()
 {
     this->reset(HPACKET);
@@ -252,6 +297,29 @@ void Packet::sendSTAT_ERR(string msg)
     this->htonp();
     ppi->sendOnePacket(this->ps, PACKSIZE);
 }
+
+void Packet::sendSTAT_EOF()
+{
+    //send EOF
+    this->reset(HPACKET);
+    char buf[MAXLINE];
+    snprintf(buf, MAXLINE, "\033[32mEnd of file\033[0m");
+    this->fillStat(STAT_EOF, strlen(buf), buf);
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
+void Packet::sendSTAT_EOF(string msg)
+{
+    this->reset(HPACKET);
+    char buf[MAXLINE];
+    snprintf(buf, MAXLINE, "\033[31m%s\033[0m", msg.c_str());
+    this->fillStat(STAT_EOF, strlen(buf), buf);
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
+
 
 PacketStruct * Packet::getPs()
 {

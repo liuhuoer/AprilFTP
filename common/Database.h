@@ -15,8 +15,8 @@ public:
     bool select(string tblname, map<string, string> & kvMap);
     bool update(string tblname, string id, map<string, string> & kvMap);
     bool update(string tblname, map<string, string> & whereMap, map<string, string> & kvMap);
-    void getResult(vector< map<string, string>> & resultMapVector_o);
-    vector< map<string, string>> & getResult();
+    void getResult(vector<map<string, string>> & resultMapVector_o);
+    vector<map<string, string>> & getResult();
 
     void printResult();
 
@@ -26,7 +26,7 @@ private:
     sqlite3 * pDb;
     char * zErrMsg;
     int rc;
-    vector< map<string, string>> resultMapVector;
+    vector<map<string, string>> resultMapVector;
 
 };
 

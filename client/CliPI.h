@@ -5,6 +5,7 @@
 #include "../common/Socket.h"
 #include "../common/SockStream.h"
 #include "../common/Packet.h"
+#include "CliDTP.h"
 
 // Client Protocol Interpreter(CliPI)
 class CliPI : public PI
@@ -19,6 +20,9 @@ public:
 
     bool cmdUSER(std::vector<string> & cmdVector);
     bool cmdPASS(std::vector<string> & cmdVector);
+    void cmdGET(std::vector<string> & cmdVector);
+    void cmdPUT(std::vector<string> & cmdVector);
+    bool confirmYN(const char * prompt);
 
     int getConnfd();
 
@@ -31,6 +35,7 @@ private:
     SockStream      connSockStream;
     string          userID;         //userID is equal to session ID
     int             connfd;
+    static std::map<string, string> helpMap;
 };
 
 #endif

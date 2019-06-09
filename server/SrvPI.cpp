@@ -63,25 +63,6 @@ void SrvPI::run()
     }
 }
 
-void SrvPI::split(std::string src, std::string token, vector<string> & vect)
-{
-    int nbegin = 0;
-    int nend = 0;
-    while(nend != -1 && (unsigned int)nbegin < src.length())
-    {
-        nend = src.find_first_of(token, nbegin);
-        if(nend == -1)
-        {
-            vect.push_back(src.substr(nbegin, src.length() - nbegin));
-        }else{
-            if(nend != nbegin)
-            {
-                vect.push_back(src.substr(nbegin, nend - nbegin));
-            }
-        }
-        nbegin = nend + 1;
-    }
-}
 
 void SrvPI::cmdUSER()
 {
@@ -134,6 +115,8 @@ void SrvPI::cmdPASS()
         packet.sendSTAT_ERR("Database select error");
     }
 }
+
+
 
 void SrvPI::saveUserState()
 {

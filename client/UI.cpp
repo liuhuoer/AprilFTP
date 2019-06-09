@@ -3,7 +3,9 @@
 
 map<const string, const uint16_t> UI::cmdMap = {
     {"USER",        USER},
-    {"PASS",        PASS}
+    {"PASS",        PASS},
+    {"PUT",         PUT},
+    {"GET",         GET}
 };
 
 
@@ -20,32 +22,27 @@ void UI::run()
     //log-in
     while(printf("Username for 'tinyFTP':"), getline(std::cin, inputline))
     {
-        printf("UI::UI()0\n");
+#ifdef debug
+    printf("*****\nUI::run()\n*****");
+#endif
         this->cmdVector.clear();
 
-        printf("UI::UI()1\n");
         std::istringstream is(inputline);
         while(is >> word)
             this->cmdVector.push_back(word);
         
-        printf("UI::UI()2\n");
         if(this->cmdVector.empty())
         {
-            printf("UI::UI()2.1\n");
             this->cmdVector.push_back("anonymous");
             this->cmdVector.push_back("anonymous");
-            printf("UI::UI()2.2\n");
             if(!cliPI.cmdPASS(this->cmdVector))
             {
-                printf("UI::UI()2.3\n");
                 continue;
             }else{
-                printf("UI::UI()2.4\n");
                 break;
             }
         }
 
-        printf("UI::UI()3\n");
         if(!cliPI.cmdUSER(this->cmdVector))
         {
             continue;
@@ -137,6 +134,10 @@ bool UI::cmdCheck()
         this->cmdid = iter->second;
         return true;
     }else{
+#ifdef debug
+    printf("*****\nUI::cmdCheck()\n*****\n");
+    cout << toUpper(cmdVector[0]) << endl;
+#endif
         std::cerr << cmdVector[0] << ": command not found" << std::endl;
         return false;
     }

@@ -18,6 +18,10 @@ SRV_OBJ = $(SRV_SRC:.cpp=.o)
 CLI_OBJ = $(CLI_SRC:.cpp=.o)
 COM_OBJ = $(COM_SRC:.cpp=.o)
 OBJ = $(SRV_OBJ) $(CLI_OBJ) $(COM_OBJ)
+%.o : %.cpp
+	$(CC) -std=c++11 -Wall -Iinclude -g -Wall -c -Ddebug $(LIBS) $< -o $@
+
+
 
 all: depend $(EXE)
 

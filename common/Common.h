@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>       //mkdir()
+#include <sys/statfs.h>     //struct statfs
 #include <sys/file.h>
 #include <netinet/in.h>     //sockaddr_in and other
 #include <arpa/inet.h>      //inet(3) function
@@ -13,6 +14,7 @@
 
 #include <unistd.h>         //select() and FD_ZERO, FD_SET and close()
 
+#include <errno.h>
 
 #include <cstdio>
 #include <cstring>
@@ -105,7 +107,36 @@ enum TagID
 enum CmdID
 {
     USER = 1,
-    PASS
+    PASS,
+    USERADD,
+    USERDEL,
+
+    GET,
+    PUT,
+    LS,
+    LLS,        //local ls
+    CD,
+    LCD,
+    RM,
+    LRM,
+    PWD,
+    LPWD,
+    MKDIR,
+    LMKDIR,
+    QUIT,
+    HELP,
+
+    MGET,
+    MPUT,
+    RGET,
+    RPUT,
+    RMDIR,
+
+    SHELL,
+    LSHELL,
+
+    BINARY,
+    ASCII
 };
 
 enum StatID
@@ -117,11 +148,21 @@ enum StatID
     STAT_PGS,   //progress
     STAT_FAIL,  //fail
     STAT_ERR,   //error
+    STAT_CTN,   //continue
+    STAT_TERM,  //terminate
+    STAT_SIZE,  //size
+    STAT_WAIT,  //wait
+    STAT_EOF,   //end of file
+    STAT_EOT,   //end of transfer
 };
 
 enum DataID
 {
-    DATA_FILE = 1
+    DATA_FILE = 1,
+    DATA_TEXT,
+    DATA_LIST,
+    DATA_NAME,
+    DATA_OTHER
 };
 
 /*****************************************************
@@ -132,9 +173,22 @@ void Fclose(FILE **fp);
 
 
 void * Malloc(size_t size);
+
+int getFileNslice(const char * pathname, uint32_t * pnslice_o);
+string getFileSizeString(const char * pathname);
+
 string md5sum(const char * str, int len);
 string md5sumNslice(const char * pathname, uint32_t nslice);
+string visualmd5sum(const char * pathname);
+string visualmd5sumNslice(const char * pathname, uint32_t nslice);
 string encryptPassword(string password);
+unsigned long long getFilesize(const char * pathname);
+string getFilesize(string pathname);
 
+unsigned long long getDiskAvailable();
+
+
+// tools
+void split(std::string src, std::string token, vector<string> & vect);
 
 #endif

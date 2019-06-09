@@ -13,6 +13,8 @@ public:
     void fill(uint16_t tagid, uint16_t cmdid, uint16_t statid, uint16_t dataid, uint32_t nslice, uint32_t sindex, uint16_t bsize, const char * body);
     void fillCmd(uint16_t cmdid, uint16_t bsize, const char * body);
     void fillStat(uint16_t statid, uint16_t bsize, const char * body);
+    void fillData(uint16_t dataid, uint32_t nslice, uint32_t sindex, uint16_t bsize, const char * body);
+    
     
     void setSessionID(uint32_t sesid);
 
@@ -27,14 +29,25 @@ public:
     void pprint();
 
     void sendCMD(uint16_t cmdid, string sbody);
+
+    void sendDATA_FILE(uint32_t nslice, uint32_t sindex, uint16_t bsize, const char * body);
+
+
     void sendSTAT_OK();
     void sendSTAT_OK(const char * msg);
     void sendSTAT_OK(string msg);
+
+    void sendSTAT_MD5(string body);
+
+    void sendSTAT_CFM(const char * msg);
+    void sendSTAT_CFM(string msg);
 
     void sendSTAT_ERR();
     void sendSTAT_ERR(const char * msg);
     void sendSTAT_ERR(string msg);
 
+    void sendSTAT_EOF();
+    void sendSTAT_EOF(string msg);
 
     PacketStruct * getPs();
     uint32_t getSesid();
