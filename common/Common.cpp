@@ -1,20 +1,23 @@
 #include "Common.h"
 #include "Error.h"
 
-void Fclose(FILE * fp)
+void 
+Fclose(FILE * fp)
 {
     if(fclose(fp) != 0)
         Error::sys("fclose error");
 }
 
-void Fclose(FILE ** fp)
+void 
+Fclose(FILE ** fp)
 {
     if(fclose(*fp) != 0)
         Error::sys("fclose error");
     *fp = NULL;
 }
 
-void * Malloc(size_t size)
+void * 
+Malloc(size_t size)
 {
     void  * ptr;
 
@@ -24,7 +27,19 @@ void * Malloc(size_t size)
     return (ptr);
 }
 
-int getFileNslice(const char * pathname, uint32_t * pnslice_o)
+void
+Pthread_create(pthread_t * tid, const pthread_attr_t * attr,
+                void * (*func)(void *), void * arg)
+{
+    int n;
+    if( (n = pthread_create(tid, attr, func, arg)) == 0)
+        return;
+    errno = n;
+    Error::sys("pthread_create error");
+}
+
+int 
+getFileNslice(const char * pathname, uint32_t * pnslice_o)
 {
     unsigned long filesize = 0, n = MAXNSLICE;
 
@@ -57,7 +72,8 @@ int getFileNslice(const char * pathname, uint32_t * pnslice_o)
 
 
 
-string md5sum(const char * str, int len)
+string 
+md5sum(const char * str, int len)
 {
     int n;
     MD5_CTX ctx;
@@ -78,7 +94,8 @@ string md5sum(const char * str, int len)
     return md5str;
 }
 
-string md5sumNslice(const char * pathname, uint32_t nslice)
+string 
+md5sumNslice(const char * pathname, uint32_t nslice)
 {
     int n;
     char buf[SLICECAP];
@@ -112,7 +129,9 @@ string md5sumNslice(const char * pathname, uint32_t nslice)
     }
     return md5str;
 }
-string visualmd5sum(const char * pathname)
+
+string 
+visualmd5sum(const char * pathname)
 {
     int n;
     char buf[SLICECAP];
@@ -167,7 +186,8 @@ string visualmd5sum(const char * pathname)
     return md5str;
 }
 
-string getFileSizeString(const char * pathname)
+string 
+getFileSizeString(const char * pathname)
 {
     unsigned long filesize = 0;
     unsigned long n = 0;
@@ -232,7 +252,8 @@ string getFileSizeString(const char * pathname)
     return hsize_o;
 }
 
-string visualmd5sumNslice(const char * pathname, uint32_t nslice)
+string 
+visualmd5sumNslice(const char * pathname, uint32_t nslice)
 {
     int n;
     char buf[SLICECAP];
@@ -295,16 +316,18 @@ string visualmd5sumNslice(const char * pathname, uint32_t nslice)
     return md5str;
 }
 
-string encryptPassword(string password)
+string 
+encryptPassword(string password)
 {
     string saltedPass = PASSSALT0 + password + PASSSALT1;
-    cout << "*****saltedPass_before: " << saltedPass << endl;
+    //cout << "*****saltedPass_before: " << saltedPass << endl;
     saltedPass = md5sum(saltedPass.c_str(), saltedPass.size());
-    cout << "*****saltedPass_after: " << saltedPass << endl;
+    //cout << "*****saltedPass_after: " << saltedPass << endl;
     return saltedPass;
 }
 
-unsigned long long getFilesize(const char * pathname)
+unsigned long long 
+getFilesize(const char * pathname)
 {
     struct stat statbuff;
     if(stat(pathname, &statbuff) < 0)
@@ -315,7 +338,9 @@ unsigned long long getFilesize(const char * pathname)
         return (unsigned long long)statbuff.st_size;
     }
 }
-string getFilesize(string pathname)
+
+string 
+getFilesize(string pathname)
 {
     struct stat statbuff;
     char buf[MAXLINE];
@@ -325,13 +350,14 @@ string getFilesize(string pathname)
         Error::ret("getFilesize#stat");
         return sizestr;
     }else{
-        snprintf(buf, MAXLINE, "%11u", (unsigned long long)statbuff.st_size);
+        snprintf(buf, MAXLINE, "%llu", (unsigned long long)statbuff.st_size);
         sizestr = buf;
         return sizestr;
     }
 }
 
-unsigned long long getDiskAvailable()
+unsigned long long 
+getDiskAvailable()
 {
     struct statfs diskInfo;
 
@@ -343,7 +369,8 @@ unsigned long long getDiskAvailable()
     return availableDisk;
 }
 
-void split(std::string src, std::string token, vector<string> & vect)
+void 
+split(std::string src, std::string token, vector<string> & vect)
 {
     int nbegin = 0;
     int nend = 0;

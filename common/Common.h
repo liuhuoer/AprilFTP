@@ -29,14 +29,13 @@ using namespace std;
 #define DEBUG       1
 
 #define DBFILENAME  "AprilFTP.db"
-#define ROOTDIR     "/home/AprilFTP"
+#define ROOTDIR     "/home/AprilFTP/"
 #define ROOTDIR_LEN strlen(ROOTDIR)
 #define KERNELDIR   "/home/AprilFTP/.AprilFTP/"
-#define GHOSTDIR    "/home/AprilFTP/.AprilFTP/ghost"
+#define GHOSTDIR    "/home/AprilFTP/.AprilFTP/ghost/"
 
 #define PASSSALT0   "&5@f#fe)"
-//#define PASSSALT1   "@AprilFTP"
-#define PASSSALT1   "@tinyFTP"
+#define PASSSALT1   "@AprilFTP"
 
 #define DELIMITER   "\x1F"
 
@@ -51,6 +50,17 @@ using namespace std;
 
 
 #define SA sockaddr
+
+class Database;
+
+struct ThreadArg
+{
+    int fd;
+    uint32_t sesid;
+
+    char buf[MAXLINE];
+    Database * pdb;
+};
 
 enum SockType
 {
@@ -173,6 +183,9 @@ void Fclose(FILE **fp);
 
 
 void * Malloc(size_t size);
+
+void Pthread_create(pthread_t *, const pthread_attr_t *,
+                    void * (*)(void *), void *);
 
 int getFileNslice(const char * pathname, uint32_t * pnslice_o);
 string getFileSizeString(const char * pathname);

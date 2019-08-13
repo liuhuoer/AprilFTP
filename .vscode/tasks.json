@@ -1,19 +1,10 @@
 {
+    "version": "2.0.0",
     "tasks": [
         {
+            "label": "g++_mk",
             "type": "shell",
-            "label": "g++ build active file",
-            "command": "/usr/bin/g++",
-            "args": [
-                "-g",
-                "${file}",
-                "-o",
-                "${fileDirname}/${fileBasenameNoExtension}"
-            ],
-            "options": {
-                "cwd": "/usr/bin"
-            }
+            "command": "/usr/bin/make",
         }
-    ],
-    "version": "2.0.0"
+    ]
 }

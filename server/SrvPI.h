@@ -14,6 +14,7 @@ class SrvPI : public PI
 {
 public:
     SrvPI(string dbFilename, int connfd);
+    bool checkBreakpoint();
     bool recvOnePacket();
     bool sendOnePacketBlocked(PacketStruct * ps, size_t nbytes);
     bool sendOnePacket(PacketStruct * ps, size_t nbytes);
@@ -21,6 +22,9 @@ public:
 
     void cmdUSER();
     void cmdPASS();
+    void cmdPUT();
+    bool sizecheck(string & sizestr);
+    bool md5check(string & md5str, string newpath);
 
 private:
     int sessionCommandPacketCount;
@@ -31,15 +35,18 @@ private:
     Database db;
 
     string userID;  // for simple, userID is equal to session ID
-    std::string userRootDir;
-    std::string userRCWD;   // current working directory relative to userRootDir
+    string userRootDir;
+    string userRCWD;   // current working directory relative to userRootDir
 
     string abspath;
     string filename;
     string filesize;
 
+    string clipath;
+
     FILE * fp;
 
+    int combineAndValidatePath(uint16_t cmdid, string userinput, string& msg_o, string & abspath_o);
     void saveUserState();
 };
 

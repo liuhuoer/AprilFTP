@@ -1,15 +1,28 @@
 #include "Server.h"
-//#include "../common/database.h"
+#include "../common/Database.h"
+
+void * clientConnect(void * arg)
+{
+    ThreadArg * pthreadArg = (ThreadArg *)arg;
+    SrvPI srvPI(DBFILENAME, pthreadArg->fd);
+
+    while(1)
+    {
+        srvPI.run();
+    }
+
+    delete pthreadArg;
+    return (NULL);
+}
 
 int main(int argc, char ** argv)
 {
-    /*
     {
         Database db(DBFILENAME);
         db.init();
     }
 
-    printf("MAXSLICE: %lu\n", MAXSLINE);
+    printf("MAXSLICE: %lu\n", MAXNSLICE);
     struct sockaddr_in cliaddr;
     socklen_t len = sizeof(cliaddr);
     char buff[MAXLINE];
@@ -33,6 +46,5 @@ int main(int argc, char ** argv)
         Pthread_create(&tid, NULL, &clientConnect, pthreadArg);
     }
 
-    */
     return 0;
 }

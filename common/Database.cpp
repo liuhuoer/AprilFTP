@@ -28,7 +28,7 @@ Database::Database(const char * zDbFilename) : dbFilename(zDbFilename)
         char buf[MAXLINE];
         fprintf(stdout, "Error(%s): %s\n", ROOTDIR, strerror_r(errno, buf, MAXLINE));
     }else{
-        fprintf(stdout, "Driectory created: %s\n");
+        fprintf(stdout, "Driectory created: %s\n", ROOTDIR);
     }
 
     // create AprilFTP/.AprilFTP/ working directory
@@ -72,6 +72,70 @@ Database::Database(const char * zDbFilename) : dbFilename(zDbFilename)
     
 }
 
+Database & Database::create()
+{
+    std::cout << "Database::create" << std::endl;
+
+    /*Create SQL statement */
+    const char * sql_table_user = "CREATE TABLE USER(" \
+        "ID         INTEGER PRIMARY KEY AUTOINCREMENT   NOT NULL," \
+        "USERNAME   TEXT UNIQUE                         NOT NULL," \
+        "PASSWORD   TEXT                                NOT NULL," \
+        "RCWD       TEXT DEFAULT '/', " \
+        "CREATE_AT  DATETIME DEFAULT (datetime('now', 'localtime'))," \
+        "UPDATE_AT  DATETIME DEFAULT (datetime('now', 'localtime'))," \
+        "STATE      INTEGER  DEFAULT 0 );";
+
+    const char * sql_table_file = "CREATE TABLE FILE(" \
+        "ID         INTEGER PRIMARY KEY AUTOINCREMENT   NOT NULL," \
+        "MD5SUM     TEXT UNIQUE                         NOT NULL," \
+        "MD5RAND    TEXT                                NOT NULL," \
+        "ABSPATH    TEXT                                NOT NULL," \
+        "FILENAME   TEXT                                NOT NULL," \
+        "INODE      INTEGER                             NOT NULL," \
+        "SIZE       INTEGER                             NOT NULL," \
+        "CREATE_AT  DATETIME DEFAULT (datetime('now', 'localtime'))," \
+        "UPDATE_AT  DATETIME DEFAULT (datetime('now', 'localtime'))," \
+        "VALID      INTEGER  DEFAULT 1 ," \
+        "ACCESS     INTEGER  DEFAULT 0 );";
+
+    const char * sql_table_ifile = "CREATE TABLE IFILE(" \
+        "ID         INTEGER PRIMARY KEY AUTOINCREMENT   NOT NULL," \
+        "USERID     TEXT                                NOT NULL," \
+        "MD5SUM     TEXT                                NOT NULL," \
+        "ABSPATH    TEXT                                NOT NULL," \
+        "FILENAME   TEXT                                NOT NULL," \
+        "SIZE       INTEGER                             NOT NULL," \
+        "NSIZE      INTEGER                             NOT NULL," \
+        "SINDEX     INTEGER                             NOT NULL," \
+        "SLICECAP   INTEGER                             NOT NULL," \
+        "CREATE_AT  DATETIME DEFAULT (datetime('now', 'localtime'))," \
+        "UPDATE_AT  DATETIME DEFAULT (datetime('now', 'localtime'))," \
+        "VALID      INTEGER  DEFAULT 1 );"; 
+    /* Execute SQL statement */
+    execute(sql_table_user, NULL);
+    execute(sql_table_file, NULL);
+    execute(sql_table_ifile, NULL);
+    
+    return *this;
+}
+
+Database & Database::createTable()
+{
+    /* Create SQL statement */
+    const char * sql_user = "CREATE TABLE USER(" \
+        "ID         INTEGER PRIMARY KEY AUTOINCREMENT   NOT NULL," \
+        "USERNAME   TEXT UNIQUE                         NOT NULL," \
+        "PASSWORD   TEXT                                NOT NULL," \
+        "CREATE_AT  DATETIME DEFAULT (datetime('now', 'localtime'))," \
+        "UPDATE_AT  DATETIME DEFAULT (datetime('now', 'localtime'))," \
+        "STATE      INTEGER  DEFAULT 0 );";
+    
+    /* Execute SQL statement*/
+    execute(sql_user, NULL);
+
+    return *this;
+}
 
 bool Database::execute(const char * sql, Database * pDatabase)
 {
@@ -106,7 +170,7 @@ bool Database::insert(string tblname, map<string, string> & kvMap)
     for( ++it; it != kvMap.end(); ++it)
     {
         sqlSring += "', '" + it->first;
-        valString += "', ," + it->second;
+        valString += "', '" + it->second;
     }
     sqlSring += "')";
     valString += "')";
@@ -194,6 +258,13 @@ vector< map<string, string>> & Database::getResult()
     return this->resultMapVector;
 }
 
+bool Database::findALL(string tblname)
+{
+    sqlSring.clear();
+    sqlSring += "SELECT * from " + tblname;
+    std::cout << "findALL: " << sqlSring << std::endl;
+    return execute(sqlSring.c_str(), this);
+}
 
 void Database::printResult()
 {
@@ -203,4 +274,57 @@ void Database::printResult()
             std::cout << it->first << ": " << it->second << "\n";
         std::cout << "\n";
     }
+}
+
+void Database::init()
+{
+    std::map<string, string> insertParamMap0 = { {"id", "1"},
+                                                {"username", "admin"},
+                                                {"password", encryptPassword("admin")}};
+    std::map<string, string> insertParamMap1 = { {"id", "2"},
+                                                {"username", "anonymous"},
+                                                {"password", encryptPassword("anonymous")}};
+    std::map<string, string> insertParamMap2 = { {"id", "3"},
+                                                {"username", "c"},
+                                                {"password", encryptPassword("c")}};
+    std::map<string, string> insertParamMap3 = { {"id", "4"},
+                                                {"username", "d"},
+                                                {"password", encryptPassword("d")}};
+    std::map<string, string> selectParamMap = { {"id", "1"},
+                                                 {"username", "Paul"} };
+    std::map<string, string> updateParamMap = { {"username", "davey"}, {"password", "dddd"} };
+
+    create();
+    insert("user", insertParamMap0);
+    insert("user", insertParamMap1);
+    insert("user", insertParamMap2);
+    insert("user", insertParamMap3);
+
+    if(findALL("user"))
+    {
+        vector< map<string, string> > myresultMapVector;
+        getResult(myresultMapVector);
+        for(vector< map<string, string> >::iterator iter = myresultMapVector.begin(); 
+                            iter != myresultMapVector.end(); ++iter)
+        {
+            string dirString(ROOTDIR);
+            dirString += (*iter)["USERNAME"];
+            DIR * d = opendir(dirString.c_str());
+            if(d)
+            {
+                fprintf(stderr, "Already exists: %s\n", dirString.c_str());
+                closedir(d);
+            }else if(mkdir(dirString.c_str(), 0777) == -1){
+                char buf[MAXLINE];
+                fprintf(stdout, "Error(%s): %s\n", dirString.c_str(), strerror_r(errno, buf, MAXLINE));
+            }else{
+                fprintf(stdout, "Directory created: %s", dirString.c_str());
+            }
+        }
+    }
+}
+
+Database::~Database()
+{
+    sqlite3_close(pDb);
 }

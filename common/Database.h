@@ -10,6 +10,9 @@ class Database
 {
 public:
     Database(const char * zDbFilename);
+
+    Database & create();
+    Database & createTable();
     bool execute(const char * sql, Database * pDatabase);
     bool insert(string tblname, map<string, string> & kvMap);
     bool select(string tblname, map<string, string> & kvMap);
@@ -18,7 +21,12 @@ public:
     void getResult(vector<map<string, string>> & resultMapVector_o);
     vector<map<string, string>> & getResult();
 
+    bool findALL(string tblname);
     void printResult();
+
+    void init();
+
+    ~Database();
 
 private:
     string dbFilename;

@@ -34,9 +34,9 @@ int Socket::init()
 
 int Socket::tcpAccept(int fd, sockaddr *sa, socklen_t *salenptr)
 {
-    int                     n;
+    int n;
 again:
-    if( (n = accept(fd, sa, salenptr) < 0))
+    if( (n = accept(fd, sa, salenptr)) < 0)
     {
 #ifdef EPROTO
         if(errno == EPROTO || errno == ECONNABORTED)

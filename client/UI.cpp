@@ -20,11 +20,8 @@ void UI::run()
     string inputline;
 
     //log-in
-    while(printf("Username for 'tinyFTP':"), getline(std::cin, inputline))
+    while(printf("Username for 'AprilFTP':"), getline(std::cin, inputline))
     {
-#ifdef debug
-    printf("*****\nUI::run()\n*****");
-#endif
         this->cmdVector.clear();
 
         std::istringstream is(inputline);
@@ -47,7 +44,7 @@ void UI::run()
         {
             continue;
         }else{
-            char *password = getpass("\033[35mPassword for 'tinyFTP': \033[0m");
+            char *password = getpass("\033[35mPassword for 'AprilFTP': \033[0m");
             this->cmdVector.push_back(password);
             if(!cliPI.cmdPASS(this->cmdVector))
             {
@@ -67,7 +64,7 @@ void UI::run()
     
     FD_ZERO(&rset);
 
-    printf("%s@tinyFTP>", username.c_str());
+    printf("%s@AprilFTP>", username.c_str());
     while(1)
     {
         fflush(stdout);
@@ -84,7 +81,7 @@ void UI::run()
         {
             getline(std::cin, inputline);
             cmdRun(inputline);
-            printf("%s@tinyFTP>", username.c_str());
+            printf("%s@AprilFTP>", username.c_str());
         }
     }
     //end!!
@@ -134,10 +131,6 @@ bool UI::cmdCheck()
         this->cmdid = iter->second;
         return true;
     }else{
-#ifdef debug
-    printf("*****\nUI::cmdCheck()\n*****\n");
-    cout << toUpper(cmdVector[0]) << endl;
-#endif
         std::cerr << cmdVector[0] << ": command not found" << std::endl;
         return false;
     }

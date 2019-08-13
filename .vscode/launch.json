@@ -4,13 +4,15 @@
     // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         
         {
-            "name": "g++ build and debug active file",
+            "name": "gdb_mk",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${fileDirname}/${fileBasenameNoExtension}",
-            "args": [],
+            "program_origin": "${fileDirname}/${fileBasenameNoExtension}",
+            "program": "${fileDirname}/client.out",
+            "args": ["192.168.31.59"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -23,7 +25,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "g++ build active file",
+            "preLaunchTask": "g++_mk",
             "miDebuggerPath": "/usr/bin/gdb"
         }
     ]
