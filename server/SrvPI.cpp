@@ -469,6 +469,198 @@ int SrvPI::combineAndValidatePath(uint16_t cmdid, string userinput, string& msg_
     }
 }
 
+int SrvPI::cmdPathProcess(uint16_t cmdid, string newAbsPath, string & msg_o)
+{
+    string rpath = newAbsPath.substr(userRootDir.size(), newAbsPath.size() - userRootDir.size());
+    if(rpath.empty())
+    {
+        rpath = "/";
+    }
+    switch(cmdid)
+    {
+        case GET:
+        {
+            struct stat statBuf;
+            char buf[MAXLINE];
+            int n = stat(newAbsPath.c_str(), &statBuf);
+            if(!n)
+            {
+                if(S_ISREG(statBuf.st_mode))
+                    return 0;
+                else if(S_ISDIR(statBuf.st_mode)){
+                    msg_o = "get: '" + newAbsPath + "' is a directory";
+                    return -1;
+                }else{
+                    msg_o = "get: '" + newAbsPath + "' is not a directory";
+                    return -1;
+                }
+            }else{
+                msg_o = newAbsPath + strerror_r(errno, buf, MAXLINE);
+                return -1;
+            }
+            break;
+        }
+        case RGET:
+        {
+            struct stat statBuf;
+            char buf[MAXLINE];
+            int n = stat(newAbsPath.c_str(), &statBuf);
+            if(!n)
+            {
+                if(S_ISREG(statBuf.st_mode))
+                {
+                    msg_o = "rget: '" + newAbsPath + "' is a regular file";
+                    return -1;
+                }else if(S_ISDIR(statBuf.st_mode)){
+                    return 0;
+                }else{
+                    msg_o = "rget: '" + newAbsPath + "' is not a directory";
+                    return -1;
+                }
+            }else{
+                msg_o = newAbsPath + strerror_r(errno, buf, MAXLINE);
+                return -1;
+            }
+            break;
+        }
+        case PUT:
+        {
+            if( (access(newAbsPath.c_str(), F_OK)) == 0)
+            {
+                msg_o = "File '~" + rpath + "' already exists, overwrite ? (y/n)";
+                return -2;
+            }else{
+                return 0;
+            }
+            break;
+        }
+        case RPUT:
+        {
+            if( (access(newAbsPath.c_str(), F_OK)) == 0)
+            {
+                msg_o = "File '~" + rpath + "' already exists, overwrite ? (y/n)";
+                return -2;
+            }else{
+                return 0;
+            }
+            break;
+        }
+        case LS:
+        {
+            DIR * d = opendir(newAbsPath.c_str());
+            char buf[MAXLINE];
+            if(!d)
+            {
+                msg_o = strerror_r(errno, buf, MAXLINE);
+                return -1;
+            }else{
+                closedir(d);
+                return 0;
+            }
+            break;
+        }
+        case CD:
+        {
+            DIR * d = opendir(newAbsPath.c_str());
+            char buf[MAXLINE];
+            if(!d)
+            {
+                msg_o = strerror_r(errno, buf, MAXLINE);
+                return -1;
+            }else{
+                //dir already exists
+                closedir(d);
+            }
+            // update usereRCWD
+            this->userRCWD = newAbsPath.substr(userRootDir.size(), newAbsPath.size() - userRootDir.size());
+            if(this->userRCWD.empty())
+            {
+                this->userRCWD = "/";
+            }
+            return 0;
+        }
+        case RM:
+        {
+            struct stat statBuf;
+            char buf[MAXLINE];
+            int n = stat(newAbsPath.c_str(), &statBuf);
+            string rpath = newAbsPath.substr(userRootDir.size(), newAbsPath.size() - userRootDir.size());
+            if(rpath.empty())
+            {
+                rpath = "/";
+            }
+            if(!n)
+            {
+                if(S_ISREG(statBuf.st_mode))
+                    return 0;
+                else if(S_ISDIR(statBuf.st_mode)){
+                    msg_o = "rm: '~" + rpath + "' is a directory";
+                    return -1;
+                }else{
+                    msg_o = "rm: '~" + rpath + "' is not a regular file";
+                    return -1;
+                }
+            }else{
+                msg_o = strerror_r(errno, buf, MAXLINE);
+                return -1;
+            }
+            break;
+        }
+        case MKDIR:
+        {
+            DIR * d = opendir(newAbsPath.c_str());
+            if(!d)
+                return 0;
+            else{
+                closedir(d);
+                msg_o = "already exists: " + newAbsPath;
+                return -1;
+            }
+            break;
+        }
+        case RMDIR:
+        {
+            struct stat statBuf;
+            char buf[MAXLINE];
+            int n = stat(newAbsPath.c_str(), &statBuf);
+            if(!n)
+            {
+                if(S_ISREG(statBuf.st_mode))
+                {
+                    msg_o = "rmdir: '~" + rpath + "' is a regular file";
+                    return -1;
+                }else if(S_ISDIR(statBuf.st_mode)){
+                    return 0;
+                }else{
+                    msg_o = "rmdir: '~" + rpath + "' is not a directory";
+                    return -1;
+                }
+            }else{
+                msg_o = strerror_r(errno, buf, MAXLINE);
+                return -1;
+            }
+            break;
+        }
+        case SHELL:
+        {
+            if( (access(newAbsPath.c_str(), F_OK)) == 0)
+                return 0;
+            else{
+                msg_o = "~" + rpath + ": No such file or directory";
+                return -1;
+            }
+            break;
+        }
+        defalut:
+        {
+            msg_o = "SrvPI::cmdPathProcess: unknown cmdid";
+            return -1;
+            break;
+        }
+    }
+    return -1;
+}
+
 void SrvPI::saveUserState()
 {
     std::cout << "\n\033[32mStart to save user state:\033[0m" << std::endl;
@@ -501,4 +693,45 @@ void SrvPI::saveUserState()
         db.insert("ifile", insertParamMap);
     }
     std::cout << "\n\033[32msave userstate ok\033[0m" << std::endl;
+}
+
+int SrvPI::getConnfd()
+{
+    return connfd;
+}
+
+FILE * SrvPI::setFp(FILE * fp)
+{
+    this->fp = fp;
+    return this->fp;
+}
+
+FILE * & SrvPI::getFp()
+{
+    return this->fp;
+}
+
+Database * SrvPI::getPDB()
+{
+    return &(this->db);
+}
+
+string SrvPI::getClipath()
+{
+    return this->clipath;
+}
+
+string SrvPI::getFilename()
+{
+    return this->filename;
+}
+
+unsigned long long SrvPI::getFilesize()
+{
+    return std::stoull(this->filesize);
+}
+
+SrvPI::~SrvPI()
+{
+
 }

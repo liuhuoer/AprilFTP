@@ -69,7 +69,38 @@ getFileNslice(const char * pathname, uint32_t * pnslice_o)
     return 1;
 }
 
+string
+md5sum(const char * pathname)
+{
+    int n;
+    char buf[SLICECAP];
+    unsigned char out[MD5_DIGEST_LENGTH];
+    string md5str;
+    MD5_CTX ctx;
 
+    FILE * fp;
+    if( (fp = fopen(pathname, "rb")) == NULL)
+    {
+        Error::ret("md5sum#fopen");
+        return md5str;
+    }
+
+    MD5_Init(&ctx);
+    while( (n = fread(buf, sizeof(char), SLICECAP, fp)) > 0)
+    {
+        MD5_Update(&ctx, buf, n);
+    }
+    printf("\n");
+
+    MD5_Final(out, &ctx);
+
+    for(n = 0; n < MD5_DIGEST_LENGTH; ++n)
+    {
+        snprintf(buf, SLICECAP, "%02x", out[n]);
+        md5str += buf;
+    }
+    return md5str;
+}
 
 
 string 
@@ -184,6 +215,63 @@ visualmd5sum(const char * pathname)
         md5str += buf;
     }
     return md5str;
+}
+
+string
+size2str(unsigned long filesize)
+{
+    unsigned long n = 0;
+    string hsize_o;
+    char buf[MAXLINE];
+    unsigned long kbase = 1024;
+    unsigned long mbase = 1024 * 1024;
+    unsigned long gbase = 1024 * 1024 * 1024;
+
+    if(filesize == 0)
+    {
+        hsize_o = "0B";
+    }else{
+        if(filesize / kbase == 0)
+        {
+            snprintf(buf, MAXLINE, "%lu", filesize);
+            hsize_o += buf;
+            hsize_o += "B";
+        }else if(filesize / mbase == 0){
+            snprintf(buf, MAXLINE, "%lu", filesize / kbase);
+            hsize_o += buf;
+            n = (filesize % kbase) * 100 / kbase;
+            if(n != 0)
+            {
+                hsize_o += ".";
+                snprintf(buf, MAXLINE, "%02lu", n);
+                hsize_o += buf;
+            }
+            hsize_o += "K";
+        }else if(filesize / gbase == 0){
+            snprintf(buf, MAXLINE, "%lu", filesize / mbase);
+            hsize_o += buf;
+            n = (filesize % mbase) * 100 / mbase;
+            if(n != 0)
+            {
+                hsize_o += ".";
+                snprintf(buf, MAXLINE, "%02lu", n);
+                hsize_o += buf;
+            }
+            hsize_o += "M";
+        }else{
+            snprintf(buf, MAXLINE, "%lu", filesize / gbase);
+            hsize_o += buf;
+            n = (filesize % gbase) * 100 / gbase;
+            if(n != 0)
+            {
+                hsize_o += ".";
+                snprintf(buf, MAXLINE, "%02lu", n);
+                hsize_o += buf;
+            }
+            hsize_o += "G";
+        }
+    }
+    return hsize_o;
 }
 
 string 
@@ -326,6 +414,18 @@ encryptPassword(string password)
     return saltedPass;
 }
 
+string
+getCurrentTime()
+{
+    char buf[MAXLINE];
+    time_t ticks;
+    struct tm *p;
+    time(&ticks);
+    p = localtime(&ticks);
+    snprintf(buf, MAXLINE, "%04d%02d%02d%02d%02d%02d", (1900 + p->tm_year), (1 + p->tm_mon), p->tm_mday, p->tm_hour, p->tm_min, p->tm_sec);
+    return string(buf);
+}
+
 unsigned long long 
 getFilesize(const char * pathname)
 {
@@ -388,4 +488,21 @@ split(std::string src, std::string token, vector<string> & vect)
         }
         nbegin = nend + 1;
     }
+}
+
+string
+getInode(const char * pathname)
+{
+    string inode;
+
+    struct stat statBuf;
+    char buf[MAXLINE];
+    if(stat(pathname, &statBuf) < 0)
+    {
+        Error::ret("\033[31mstat\033[0m");
+    }else{
+        snprintf(buf, MAXLINE, "%lu", statBuf.st_ino);
+        inode = buf;
+    }
+    return inode;
 }

@@ -203,6 +203,15 @@ void Packet::pprint()
     fflush(stdout);
 }
 
+void Packet::sendSTAT(uint16_t statid, string body)
+{
+    this->reset(HPACKET);
+    this->fillStat(statid, body.size(), body.c_str());
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
+
 void Packet::sendSTAT_OK()
 {
     this->reset(HPACKET);
@@ -235,10 +244,37 @@ void Packet::sendSTAT_OK(string msg)
 
 }
 
+void Packet::sendSTAT_BPR(string body)
+{
+    this->reset(HPACKET);
+    this->fillStat(STAT_BPR, body.size(), body.c_str());
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
 void Packet::sendSTAT_MD5(string body)
 {
     this->reset(HPACKET);
     this->fillStat(STAT_MD5, body.size(), body.c_str());
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
+
+void Packet::sendSTAT_PGS(string body)
+{
+    this->reset(HPACKET);
+    this->fillStat(STAT_PGS, body.size(), body.c_str());
+    this->htonp();
+    ppi->sendOnePacketBlocked(this->ps, PACKSIZE);
+}
+
+void Packet::sendSTAT_FAIL(string body)
+{
+    this->reset(HPACKET);
+    char buf[MAXLINE];
+    snprintf(buf, MAXLINE, "\033[31m%s\033[0m", body.c_str());
+    this->fillStat(STAT_FAIL, strlen(buf), buf);
     this->htonp();
     ppi->sendOnePacket(this->ps, PACKSIZE);
 }
@@ -318,7 +354,26 @@ void Packet::sendSTAT_EOF(string msg)
     ppi->sendOnePacket(this->ps, PACKSIZE);
 }
 
+void Packet::sendSTAT_EOT()
+{
+    //send EOF
+    this->reset(HPACKET);
+    char buf[MAXLINE];
+    snprintf(buf, MAXLINE, "\033[32mEnd of Transfer\033[0m");
+    this->fillStat(STAT_EOT, strlen(buf), buf);
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
 
+void Packet::sendSTAT_EOT(string msg)
+{
+    this->reset(HPACKET);
+    char buf[MAXLINE];
+    snprintf(buf, MAXLINE, "\033[32m%s\033[0m", msg.c_str());
+    this->fillStat(STAT_EOF, strlen(buf), buf);
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
 
 PacketStruct * Packet::getPs()
 {

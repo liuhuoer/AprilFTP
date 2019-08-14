@@ -187,14 +187,17 @@ void * Malloc(size_t size);
 void Pthread_create(pthread_t *, const pthread_attr_t *,
                     void * (*)(void *), void *);
 
+string size2str(unsigned long filesize);
 int getFileNslice(const char * pathname, uint32_t * pnslice_o);
 string getFileSizeString(const char * pathname);
 
+string md5sum(const char * str);
 string md5sum(const char * str, int len);
 string md5sumNslice(const char * pathname, uint32_t nslice);
 string visualmd5sum(const char * pathname);
 string visualmd5sumNslice(const char * pathname, uint32_t nslice);
 string encryptPassword(string password);
+string getCurrentTime();
 unsigned long long getFilesize(const char * pathname);
 string getFilesize(string pathname);
 
@@ -203,5 +206,7 @@ unsigned long long getDiskAvailable();
 
 // tools
 void split(std::string src, std::string token, vector<string> & vect);
+
+string getInode(const char * pathname);
 
 #endif

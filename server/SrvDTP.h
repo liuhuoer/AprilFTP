@@ -13,7 +13,15 @@ class SrvPI;
 class SrvDTP
 {
 public:
+
     SrvDTP(Packet * ppacket, SrvPI * psrvPI);
+
+    void insertNewFileMD5SUM(const char * pathname, Database * pdb);
+    void recvFile(const char *pathname, uint32_t nslice, uint32_t sindex, uint16_t slicecap = SLICECAP);
+
+private:
+    Packet * ppacket;
+    SrvPI * psrvPI;
 };
 
 

@@ -32,12 +32,19 @@ public:
 
     void sendDATA_FILE(uint32_t nslice, uint32_t sindex, uint16_t bsize, const char * body);
 
+    void sendSTAT(uint16_t statid, string body);
 
     void sendSTAT_OK();
     void sendSTAT_OK(const char * msg);
     void sendSTAT_OK(string msg);
 
+    void sendSTAT_BPR(string body);
+
     void sendSTAT_MD5(string body);
+
+    void sendSTAT_PGS(string body);
+
+    void sendSTAT_FAIL(string body);
 
     void sendSTAT_CFM(const char * msg);
     void sendSTAT_CFM(string msg);
@@ -48,6 +55,9 @@ public:
 
     void sendSTAT_EOF();
     void sendSTAT_EOF(string msg);
+
+    void sendSTAT_EOT();
+    void sendSTAT_EOT(string msg);
 
     PacketStruct * getPs();
     uint32_t getSesid();

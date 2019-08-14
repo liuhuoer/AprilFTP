@@ -181,6 +181,25 @@ bool Database::insert(string tblname, map<string, string> & kvMap)
     return execute(sqlSring.c_str(), this);
 }
 
+bool Database::selectNewest(string tblname, map<string, string> & kvMap)
+{
+    sqlSring.clear();
+    sqlSring += "SELECT * from ";
+    sqlSring += tblname;
+    sqlSring += " WHERE ";
+
+    map<string, string>::iterator it = kvMap.begin();
+    sqlSring += it->first + "='" + it->second + "'";
+    for(++it; it != kvMap.end(); ++it)
+    {
+        sqlSring += " and " + it->first + "='" + it->second + "'";
+    }
+    sqlSring += " order by ID desc";
+    std::cout << "query: " << sqlSring << std::endl;
+
+    return execute(sqlSring.c_str(), this);
+}
+
 bool Database::select(string tblname, map<string, string> & kvMap)
 {
     /* Construct SQL statement*/

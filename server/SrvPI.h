@@ -26,6 +26,16 @@ public:
     bool sizecheck(string & sizestr);
     bool md5check(string & md5str, string newpath);
 
+    int getConnfd();
+    FILE * setFp(FILE * fp);
+    FILE * & getFp();
+    Database * getPDB();
+    string getClipath();
+    string getFilename();
+    unsigned long long getFilesize();
+
+    ~SrvPI();
+
 private:
     int sessionCommandPacketCount;
     Packet packet;
@@ -47,6 +57,7 @@ private:
     FILE * fp;
 
     int combineAndValidatePath(uint16_t cmdid, string userinput, string& msg_o, string & abspath_o);
+    int cmdPathProcess(uint16_t cmdid, string newAbsPath, string & msg_o);
     void saveUserState();
 };
 
