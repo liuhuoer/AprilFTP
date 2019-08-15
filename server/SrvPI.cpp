@@ -170,6 +170,9 @@ void SrvPI::run()
             case PUT:
                 cmdPUT();
                 break;
+            case LS:
+                cmdLS();
+                break;
             default:
                 Error::msg("Server: sorry! this command function not finished yet.\n");
                 break;
@@ -409,6 +412,97 @@ bool SrvPI::md5check(string & md5str, string newpath)
         return false;
     }
 }
+
+void SrvPI::cmdLS()
+{
+    printf("LS request\n");
+    char buf[MAXLINE];
+    vector<string> paramVector;
+    split(packet.getSBody(), DELIMITER, paramVector);
+    if(paramVector.size() == 0)
+    {
+        paramVector.push_back("");
+    }
+    string msg_o;
+    if(combineAndValidatePath(LS, paramVector[0], msg_o, this->abspath) < 0)
+    {
+        packet.sendSTAT_ERR(msg_o.c_str());
+        return;
+    }
+    string path = this->abspath;
+    DIR * dir = opendir(path.c_str());
+    if(!dir)
+    {
+        packet.sendSTAT_ERR(strerror_r(errno, buf, MAXLINE));
+        return;
+    }else{
+        packet.sendSTAT_OK();
+    }
+    struct dirent * e;
+    int cnt = 0;
+    int sindex = 0;
+    string sbody;
+    while( (e = readdir(dir)))
+    {
+        if(e->d_type == 4)
+        {
+            if(!strcmp(e->d_name, "..") || !strcmp(e->d_name, "."))
+                continue;
+            if(strlen(e->d_name) > 15)
+            {
+                if(sbody.empty() || sbody.back() == '\n')
+                {
+                    snprintf(buf, MAXLINE, "\033[36m%s\033[0m\n", e->d_name);
+                }else{
+                    snprintf(buf, MAXLINE, "\n\033[36m%s\033[0m\n", e->d_name);
+                }
+                cnt = 0;
+            }else{
+                snprintf(buf, MAXLINE, "\033[36m%-10s\033[0m\t", e->d_name);
+                ++cnt;
+            }
+        }else{
+            if(strlen(e->d_name) > 15)
+            {
+                if(sbody.empty() || sbody.back() == '\n')
+                    snprintf(buf, MAXLINE, "%s\n", e->d_name);
+                else
+                    snprintf(buf, MAXLINE, "\n%s\n", e->d_name);
+                cnt = 0;
+            }else{
+                snprintf(buf, MAXLINE, "%-10s\t", e->d_name);
+                ++cnt;
+            }
+        }
+        if(cnt != 0 && (cnt % 5) == 0)
+            strcat(buf, "\n");
+        
+        if( (sbody.size() + strlen(buf)) > SLICECAP)
+        {
+            packet.sendDATA_LIST(0, ++sindex, sbody.size(), sbody.c_str());
+            sbody.clear();
+            recvOnePacket();
+            if(packet.getTagid() == TAG_STAT && packet.getStatid() == STAT_CTN)
+                continue;
+            else if(packet.getTagid() == TAG_STAT && packet.getStatid() == STAT_TERM)
+                break;
+            else{
+                Error::msg("unknown packet");
+                packet.print();
+                return;
+            }
+        }
+        sbody += buf;
+    }
+    if(!sbody.empty())
+    {
+        sindex = 0;
+        if(sbody.back() == '\n')
+            sbody.pop_back();
+        packet.sendDATA_LIST(0, 0, sbody.size(), sbody.c_str());
+    }
+}
+
 
 int SrvPI::combineAndValidatePath(uint16_t cmdid, string userinput, string& msg_o, string & abspath_o)
 {
@@ -694,6 +788,7 @@ void SrvPI::saveUserState()
     }
     std::cout << "\n\033[32msave userstate ok\033[0m" << std::endl;
 }
+
 
 int SrvPI::getConnfd()
 {

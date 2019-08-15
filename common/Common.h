@@ -10,6 +10,7 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <openssl/md5.h>
+#include <termios.h>
 #include <dirent.h>         //Dir, opendir() and closedir()
 
 #include <unistd.h>         //select() and FD_ZERO, FD_SET and close()
@@ -203,6 +204,8 @@ string getFilesize(string pathname);
 
 unsigned long long getDiskAvailable();
 
+void restore_terminal_settings(void);
+void disable_terminal_return(void);
 
 // tools
 void split(std::string src, std::string token, vector<string> & vect);

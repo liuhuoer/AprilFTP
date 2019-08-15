@@ -115,6 +115,22 @@ void Packet::sendDATA_FILE(uint32_t nslice, uint32_t sindex, uint16_t bsize, con
     ppi->sendOnePacket(this->ps, PACKSIZE);
 }
 
+void Packet::sendDATA_LIST(uint32_t nslice, uint32_t sindex, uint16_t bsize, const char * body)
+{
+    this->reset(HPACKET);
+    this->fillData(DATA_LIST, nslice, sindex, bsize, body);
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
+void Packet::sendDATA_LIST(uint32_t nslice, uint32_t sindex, uint16_t bsize, string body)
+{
+    this->reset(HPACKET);
+    this->fillData(DATA_LIST, nslice, sindex, bsize, body.c_str());
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
 void Packet::ntohp()
 {
     if(pstype == HPACKET)

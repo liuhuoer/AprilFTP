@@ -6,7 +6,8 @@ std::map<string, string> CliPI::helpMap = {
                 {"USERDEL", "userdel [username]"},
 
                 {"GET",     "get [remote-file] [local-file]"},
-                {"PUT",     "put [local-file]  [remote-file]"}
+                {"PUT",     "put [local-file]  [remote-file]"},
+                {"LS",      "ls [remote-dir]"}
 };
 
 CliPI::CliPI(const char *host) : packet(this), readpacket(this)
@@ -136,6 +137,9 @@ void CliPI::run(uint16_t cmdid, std::vector<string> & paramVector)
             break;
         case PUT:
             cmdPUT(paramVector);
+            break;
+        case LS:
+            cmdLS(paramVector);
             break;
         default:
             Error::msg("Client: Sorry! this command function not finished yet.\n");
@@ -455,6 +459,75 @@ void CliPI::cmdPUT(std::vector<string> & paramVector)
                 Error::msg("unknown tagid: %d", packet.getTagid());
                 break;
             }
+        }
+    }
+}
+
+void CliPI::cmdLS(std::vector<string> & paramVector)
+{
+    if(paramVector.size() > 1)
+    {
+        std::cout << "Usage: " << helpMap["LS"] << std::endl;
+        return;
+    }
+
+    packet.sendCMD(LS, getEncodedParams(paramVector));
+
+    recvOnePacket();
+
+    if(packet.getTagid() == TAG_STAT)
+    {
+        if(packet.getStatid() == STAT_OK)
+        {
+        }else if(packet.getStatid() == STAT_ERR){
+            cerr << packet.getSBody() << std::endl;
+            return;
+        }else{
+            Error::msg("unknown statid %d", packet.getStatid());
+            return;
+        }
+    }else{
+        Error::msg("unknown tagid %d", packet.getTagid());
+        return;
+    }
+    int cnt = 0;
+    while(recvOnePacket())
+    {
+        if(packet.getTagid() == TAG_DATA && packet.getDataid() == DATA_LIST)
+        {
+            ++cnt;
+            cerr << packet.getSBody();
+            if(packet.getSindex() == 0)
+            {
+                continue;
+            }
+
+            disable_terminal_return();
+
+            char ch;
+            /* key  reading loop*/
+            while(fprintf(stderr, "\n\033[7mmpage %d (press j for page down or q to quit)\033[0m", cnt), ch = getc(stdin))
+            {
+                if(ch == 'j')
+                {
+                    packet.sendSTAT(STAT_CTN, "continue");
+                    fprintf(stderr, "\033[2K\r\033[0m");
+                    break;
+                }else if(ch == 'q'){
+                    packet.sendSTAT(STAT_TERM, "terminate");
+                    break;
+                }else{
+                    fprintf(stderr, "error\n");
+                    continue;
+                }
+            }
+            restore_terminal_settings();
+        }else if(packet.getTagid() == TAG_STAT && packet.getStatid() == STAT_EOT){
+            cout << std::endl;
+            break;
+        }else{
+            Error::msg("unknown tagid %d with statid %d", packet.getTagid(), packet.getStatid());
+            return;
         }
     }
 }

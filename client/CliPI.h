@@ -22,6 +22,8 @@ public:
     bool cmdPASS(std::vector<string> & cmdVector);
     void cmdGET(std::vector<string> & cmdVector);
     void cmdPUT(std::vector<string> & cmdVector);
+    void cmdLS(std::vector<string> & cmdVector);
+
     bool confirmYN(const char * prompt);
 
     int getConnfd();

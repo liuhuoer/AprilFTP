@@ -32,6 +32,9 @@ public:
 
     void sendDATA_FILE(uint32_t nslice, uint32_t sindex, uint16_t bsize, const char * body);
 
+    void sendDATA_LIST(uint32_t nslice, uint32_t sindex, uint16_t bsize, const char * body);
+    void sendDATA_LIST(uint32_t nslice, uint32_t sindex, uint16_t bsize, string body);
+
     void sendSTAT(uint16_t statid, string body);
 
     void sendSTAT_OK();
