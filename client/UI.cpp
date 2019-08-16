@@ -6,7 +6,16 @@ map<const string, const uint16_t> UI::cmdMap = {
     {"PASS",        PASS},
     {"PUT",         PUT},
     {"GET",         GET},
-    {"LS",          LS}
+    {"LS",          LS},
+    {"LLS",         LLS},
+    {"LCD",         LCD},
+    {"LRM",         LRM},
+    {"LPWD",        LPWD},
+    {"LMKDIR",      LMKDIR},
+    {"QUIT",        QUIT},
+    {"HELP",        HELP},
+
+    {"LSHELL",      LSHELL}
 };
 
 

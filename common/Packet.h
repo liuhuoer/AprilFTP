@@ -35,6 +35,10 @@ public:
     void sendDATA_LIST(uint32_t nslice, uint32_t sindex, uint16_t bsize, const char * body);
     void sendDATA_LIST(uint32_t nslice, uint32_t sindex, uint16_t bsize, string body);
 
+    void sendDATA_TEXT(const char * msg);
+    void sendDATA_TEXT(uint16_t bsize, const char * body);
+    void sendDATA_TEXT(string msg);
+
     void sendSTAT(uint16_t statid, string body);
 
     void sendSTAT_OK();

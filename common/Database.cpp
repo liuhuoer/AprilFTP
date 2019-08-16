@@ -172,8 +172,8 @@ bool Database::insert(string tblname, map<string, string> & kvMap)
         sqlSring += "', '" + it->first;
         valString += "', '" + it->second;
     }
-    sqlSring += "')";
-    valString += "')";
+    sqlSring += "') ";
+    valString += "') ";
     sqlSring += valString;
 
     std::cout << "insert: " << sqlSring << std::endl;
@@ -189,10 +189,10 @@ bool Database::selectNewest(string tblname, map<string, string> & kvMap)
     sqlSring += " WHERE ";
 
     map<string, string>::iterator it = kvMap.begin();
-    sqlSring += it->first + "='" + it->second + "'";
+    sqlSring += it->first + " = '" + it->second + "'";
     for(++it; it != kvMap.end(); ++it)
     {
-        sqlSring += " and " + it->first + "='" + it->second + "'";
+        sqlSring += " and " + it->first + " = '" + it->second + "'";
     }
     sqlSring += " order by ID desc";
     std::cout << "query: " << sqlSring << std::endl;
@@ -212,7 +212,7 @@ bool Database::select(string tblname, map<string, string> & kvMap)
     sqlSring += it->first + "='" + it->second + "'";
     for(++it; it != kvMap.end(); ++it)
     {
-        sqlSring += " and " + it->first + "='" + it->second + "'";
+        sqlSring += " and " + it->first + " = '" + it->second + "'";
     }
     std::cout << "query: " << sqlSring << std::endl;
     /*Execute SQL statement*/
@@ -225,13 +225,13 @@ bool Database::update(string tblname, string id, map<string, string> & kvMap)
     sqlSring.clear();
     sqlSring += "UPDATE ";
     sqlSring += tblname;
-    sqlSring += "SET";
+    sqlSring += " SET ";
 
     map<string, string>::iterator it = kvMap.begin();
-    sqlSring += it->first + "='" + it->second + "'";
+    sqlSring += it->first + " = '" + it->second + "'";
     for(++it; it != kvMap.end(); ++it)
     {
-        sqlSring += ", " + it->first + "='" + it->second + "'";
+        sqlSring += ", " + it->first + " = '" + it->second + "'";
     }
     sqlSring += " WHERE id = '" + id + "'";
     std::cout << "update: " << sqlSring << std::endl;
@@ -245,21 +245,21 @@ bool Database::update(string tblname, map<string, string> & whereMap, map<string
     sqlSring.clear();
     sqlSring += "UPDATE ";
     sqlSring += tblname;
-    sqlSring += "SET";
+    sqlSring += " SET ";
 
     map<string, string>::iterator it = kvMap.begin();
     sqlSring += it->first + "='" + it->second + "'";
     for(++it; it != kvMap.end(); ++it)
     {
-        sqlSring += ", " + it->first + "='" + it->second + "'";
+        sqlSring += ", " + it->first + " = '" + it->second + "'";
     }
     sqlSring += " WHERE ";
 
     map<string, string>::iterator iter = whereMap.begin();
-    sqlSring += iter->first + "='" + iter->second + "'";
+    sqlSring += iter->first + " = '" + iter->second + "'";
     for(++iter; iter != whereMap.end(); ++iter)
     {
-        sqlSring += " and " + iter->first + "='" + iter->second + "'";
+        sqlSring += " and " + iter->first + " = '" + iter->second + "'";
     }
     std::cout << "update: " << sqlSring << std::endl;
     /* Excute SQL statment*/

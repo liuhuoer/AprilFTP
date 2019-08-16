@@ -7,7 +7,15 @@ std::map<string, string> CliPI::helpMap = {
 
                 {"GET",     "get [remote-file] [local-file]"},
                 {"PUT",     "put [local-file]  [remote-file]"},
-                {"LS",      "ls [remote-dir]"}
+                {"LS",      "ls [remote-dir]"},
+                {"LLS",     "lls same as local ls"},
+                {"LCD",     "lcd [local-dir]"},
+                {"LRM",     "lrm same as local rm"},
+                {"LPWD",    "lpwd same as local pwd"},
+                {"LMKDIR",  "lmkdir same as local mkdir"},
+                {"QUIT",    "quit"},
+                {"HELP",    "help [cmd]"},
+                {"LSHELL",  "shell same as local shell"}
 };
 
 CliPI::CliPI(const char *host) : packet(this), readpacket(this)
@@ -140,6 +148,30 @@ void CliPI::run(uint16_t cmdid, std::vector<string> & paramVector)
             break;
         case LS:
             cmdLS(paramVector);
+            break;
+        case LLS:
+            cmdLLS(paramVector);
+            break;
+        case LCD:
+            cmdLCD(paramVector);
+            break;
+        case LRM:
+            cmdLRM(paramVector);
+            break;
+        case LPWD:
+            cmdLPWD(paramVector);
+            break;
+        case LMKDIR:
+            cmdLMKDIR(paramVector);
+            break;
+        case LSHELL:
+            cmdLSHELL(paramVector);
+            break;
+        case QUIT:
+            cmdQUIT(paramVector);
+            break;
+        case HELP:
+            cmdHELP(paramVector);
             break;
         default:
             Error::msg("Client: Sorry! this command function not finished yet.\n");
@@ -532,6 +564,142 @@ void CliPI::cmdLS(std::vector<string> & paramVector)
     }
 }
 
+void CliPI::cmdLLS(std::vector<string> & paramVector)
+{
+    string shellCMD = "ls --color=auto";
+    for(auto it = paramVector.begin(); it != paramVector.end(); ++it)
+        shellCMD += " " + *it;
+    
+    if(system(shellCMD.c_str()) == -1)
+    {
+        char buf[MAXLINE];
+        std::cout << "system(): " << strerror_r(errno, buf, MAXLINE) << std::endl;
+    }
+}
+
+void CliPI::cmdLCD(std::vector<string> & paramVector)
+{
+    if(paramVector.empty() || paramVector.size() != 1)
+    {
+        std::cout << "Usage: " << helpMap["LCD"] << std::endl;
+        return;
+    }
+
+    int n;
+
+    if( (n = chdir(paramVector[0].c_str())) == -1)
+    {
+        Error::ret("lcd");
+        return;
+    }
+}
+
+void CliPI::cmdLRM(std::vector<string> & paramVector)
+{
+    string shellCMD = "rm";
+    for(auto it = paramVector.begin(); it != paramVector.end(); ++it)
+        shellCMD += " " + *it;
+
+    if(system(shellCMD.c_str()) == -1)
+    {
+        char buf[MAXLINE];
+        std::cout << "system(): " << strerror_r(errno, buf, MAXLINE) << std::endl;
+    }
+}
+
+void CliPI::cmdLPWD(std::vector<string> & paramVector)
+{
+    string shellCMD = "pwd";
+    for(auto it = paramVector.begin(); it != paramVector.end(); ++it)
+        shellCMD += " " + *it;
+
+    if(system(shellCMD.c_str()) == -1)
+    {
+        char buf[MAXLINE];
+        std::cout << "system(): " << strerror_r(errno, buf, MAXLINE) << std::endl;
+    }
+}
+
+bool CliPI::cmdLMKDIR(string path)
+{
+    char buf[MAXLINE];
+    if(mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1)
+    {
+        printf("\033[31mmkdir [%s] failed: %s\033[0m\n", path.c_str(), strerror_r(errno, buf, MAXLINE));
+        return false;
+    }else{
+        printf("\033[35mDir [%s] created: \033[0m\n", path.c_str());
+        return true;
+    }
+}
+
+void CliPI::cmdLMKDIR(std::vector<string> & paramVector)
+{
+    string shellCMD = "mkdir";
+    for(auto it = paramVector.begin(); it != paramVector.end(); ++it)
+        shellCMD += " " + *it;
+    
+    if(system(shellCMD.c_str()) == -1)
+    {
+        char buf[MAXLINE];
+        std::cout << "system(): " << strerror_r(errno, buf, MAXLINE) << std::endl;
+    }
+}
+
+void CliPI::cmdQUIT(std::vector<string> & paramVector)
+{
+    if(paramVector.size() != 0)
+    {
+        std::cout << "Usage: " << helpMap["QUIT"] << std::endl;
+        return;
+    }
+    Socket::tcpClose(connfd);
+    exit(1);
+}
+
+void CliPI::cmdLSHELL(std::vector<string> & paramVector)
+{
+    string shellCmdStr;
+    for(auto it = paramVector.begin(); it != paramVector.end(); ++it)
+        shellCmdStr += " " + *it;
+    
+    if(system(shellCmdStr.c_str()) == -1)
+    {
+        char buf[MAXLINE];
+        std::cout << "system(): " << strerror_r(errno, buf, MAXLINE) << std::endl;
+    }
+}
+
+void CliPI::cmdHELP(std::vector<string> & paramVector)
+{
+    if(paramVector.size() == 0)
+    {
+        int i = 1;
+        std::cout << "commands: " << std::endl;
+        for(auto iter = helpMap.begin(); iter != helpMap.end(); ++iter, ++i)
+        {
+            std::cout << "\t" << iter->first;
+            if(i % 5 == 0)
+                std::cout << std::endl;
+        }
+
+        if( (i - 1) % 5 != 0)
+            std::cout << std::endl;
+    }else if(paramVector.size() == 1){
+        map<string, string>::iterator iter = helpMap.find(toUpper(paramVector[0]));
+        if(iter != helpMap.end())
+            std::cout << "Usage: " << helpMap[toUpper(paramVector[0])] << std::endl;
+        else
+        {
+            std::cerr << paramVector[0] << ": command not found" << std::endl;
+        }
+    }else{
+        std::cout << "Usage: " << helpMap["HELP"] << std::endl;
+    }
+
+    return;
+}
+
 bool CliPI::confirmYN(const char * prompt)
 {
     string inputline, word;
@@ -556,6 +724,23 @@ bool CliPI::confirmYN(const char * prompt)
     }
     return false;
 }
+
+string CliPI::toUpper(string & s)
+{
+    string upperStr;
+    for(string::size_type i = 0; i < s.size(); ++i)
+        upperStr += toupper(s[i]);
+    return upperStr;
+}
+
+string CliPI::toLower(string & s)
+{
+    string upperStr;
+    for(string::size_type i = 0; i < s.size(); ++i)
+        upperStr += tolower(s[i]);
+    return upperStr;
+}
+
 
 int CliPI::getConnfd()
 {

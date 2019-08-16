@@ -20,15 +20,27 @@ public:
 
     bool cmdUSER(std::vector<string> & cmdVector);
     bool cmdPASS(std::vector<string> & cmdVector);
+
     void cmdGET(std::vector<string> & cmdVector);
     void cmdPUT(std::vector<string> & cmdVector);
     void cmdLS(std::vector<string> & cmdVector);
+    void cmdLLS(std::vector<string> & cmdVector);
+    void cmdLCD(std::vector<string> & cmdVector);
+    void cmdLRM(std::vector<string> & cmdVector);
+    void cmdLPWD(std::vector<string> & cmdVector);
+    void cmdLMKDIR(std::vector<string> & cmdVector);
+    bool cmdLMKDIR(string path);
+    void cmdLSHELL(std::vector<string> & cmdVector);
+    void cmdQUIT(std::vector<string> & cmdVector);
+    void cmdHELP(std::vector<string> & cmdVector);
 
     bool confirmYN(const char * prompt);
 
     int getConnfd();
 
 private:
+    string toUpper(string & s);
+    string toLower(string & s);
     void saveUserState();
 
 private:

@@ -23,6 +23,7 @@ public:
     void cmdUSER();
     void cmdPASS();
     void cmdPUT();
+    void cmdGET();
     bool sizecheck(string & sizestr);
     bool md5check(string & md5str, string newpath);
     void cmdLS();

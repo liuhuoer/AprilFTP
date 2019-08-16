@@ -170,6 +170,9 @@ void SrvPI::run()
             case PUT:
                 cmdPUT();
                 break;
+            case GET:
+                cmdGET();
+                break;
             case LS:
                 cmdLS();
                 break;
@@ -360,6 +363,38 @@ void SrvPI::cmdPUT()
     this->filename.clear();
     this->filesize.clear();
 
+}
+
+void SrvPI::cmdGET()
+{
+    printf("GET request\n");
+
+    vector<string> paramVector;
+    split(packet.getSBody(), DELIMITER, paramVector);
+    cout << packet.getSBody() << ": " << paramVector[0] << endl;
+    string srvpath;
+    if(paramVector.size() == 1)
+    {
+        srvpath = paramVector[0];
+    }else if(paramVector.size() == 2){
+        srvpath = paramVector[0];
+    }else{
+        packet.sendSTAT_ERR("GET params error");
+        return;
+    }
+
+    string msg_o;
+    if(combineAndValidatePath(GET, paramVector[0], msg_o, this->abspath) < 0)
+    {
+        packet.sendSTAT_ERR(msg_o.c_str());
+        return;
+    }
+
+    string path = this->abspath;
+    SrvDTP srvDTP(&(this->packet), this);
+    srvDTP.sendFile(path.c_str(), 0, 0);
+
+    packet.sendSTAT_EOT();
 }
 
 bool SrvPI::sizecheck(string & sizestr)
@@ -745,7 +780,7 @@ int SrvPI::cmdPathProcess(uint16_t cmdid, string newAbsPath, string & msg_o)
             }
             break;
         }
-        defalut:
+        default:
         {
             msg_o = "SrvPI::cmdPathProcess: unknown cmdid";
             return -1;

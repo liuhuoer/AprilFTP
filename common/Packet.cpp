@@ -227,6 +227,29 @@ void Packet::sendSTAT(uint16_t statid, string body)
     ppi->sendOnePacket(this->ps, PACKSIZE);
 }
 
+void Packet::sendDATA_TEXT(const char * body)
+{
+    this->reset(HPACKET);
+    this->fillData(DATA_TEXT, 0, 0, strlen(body), body);
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
+void Packet::sendDATA_TEXT(uint16_t bsize, const char * body)
+{
+    this->reset(HPACKET);
+    this->fillData(DATA_TEXT, 0, 0, bsize, body);
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
+void Packet::sendDATA_TEXT(string body)
+{
+    this->reset(HPACKET);
+    this->fillData(DATA_TEXT, 0, 0, body.size(), body.c_str());
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
 
 void Packet::sendSTAT_OK()
 {
