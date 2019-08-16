@@ -25,11 +25,16 @@ public:
     void cmdPUT(std::vector<string> & cmdVector);
     void cmdLS(std::vector<string> & cmdVector);
     void cmdLLS(std::vector<string> & cmdVector);
+    void cmdCD(std::vector<string> & cmdVector);
     void cmdLCD(std::vector<string> & cmdVector);
+    void cmdRM(std::vector<string> & cmdVector);
     void cmdLRM(std::vector<string> & cmdVector);
+    void cmdPWD(std::vector<string> & cmdVector);
     void cmdLPWD(std::vector<string> & cmdVector);
+    void cmdMKDIR(std::vector<string> & cmdVector);
     void cmdLMKDIR(std::vector<string> & cmdVector);
     bool cmdLMKDIR(string path);
+    void cmdSHELL(std::vector<string> & cmdVector);
     void cmdLSHELL(std::vector<string> & cmdVector);
     void cmdQUIT(std::vector<string> & cmdVector);
     void cmdHELP(std::vector<string> & cmdVector);

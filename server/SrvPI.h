@@ -27,6 +27,11 @@ public:
     bool sizecheck(string & sizestr);
     bool md5check(string & md5str, string newpath);
     void cmdLS();
+    void cmdCD();
+    void cmdRM();
+    void cmdPWD();
+    void cmdMKDIR();
+    void cmdSHELL();
 
     int getConnfd();
     FILE * setFp(FILE * fp);

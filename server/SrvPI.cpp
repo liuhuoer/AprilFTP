@@ -176,6 +176,22 @@ void SrvPI::run()
             case LS:
                 cmdLS();
                 break;
+            case CD:
+                cmdCD();
+                break;
+            case RM:
+                cmdRM();
+                break;
+            case PWD:
+                cmdPWD();
+                break;
+            case MKDIR:
+                cmdMKDIR();
+                break;
+            case SHELL:
+                cmdSHELL();
+                break;
+ 
             default:
                 Error::msg("Server: sorry! this command function not finished yet.\n");
                 break;
@@ -536,8 +552,150 @@ void SrvPI::cmdLS()
             sbody.pop_back();
         packet.sendDATA_LIST(0, 0, sbody.size(), sbody.c_str());
     }
+    packet.sendSTAT_EOT();
 }
 
+void SrvPI::cmdCD()
+{
+    printf("CD request\n");
+    vector<string> paramVector;
+    split(packet.getSBody(), DELIMITER, paramVector);
+    string msg_o;
+    if(combineAndValidatePath(CD, paramVector[0], msg_o, this->abspath) < 0)
+    {
+        packet.sendSTAT_ERR(msg_o.c_str());
+        return;
+    }else{
+        packet.sendSTAT_OK("CWD: ~" + userRCWD);
+        return;
+    }
+}
+
+void SrvPI::cmdRM()
+{
+    printf("RM request\n");
+    vector<string> paramVector;
+    split(packet.getSBody(), DELIMITER, paramVector);
+    string msg_o;
+
+    vector<string>::iterator iter = paramVector.begin();
+    if(paramVector[0][0] == '-')
+    {
+        if(combineAndValidatePath(RM, *iter, msg_o, this->abspath) < 0)
+        {
+            packet.sendSTAT_ERR(msg_o.c_str());
+            return;
+        }
+        ++iter;
+    }
+
+    if(combineAndValidatePath(RM, *iter, msg_o, this->abspath) < 0)
+    {
+        packet.sendSTAT_ERR(msg_o.c_str());
+        return;
+    }else{
+        char buf[MAXLINE];
+        string path = this->abspath;
+        if(remove(path.c_str()) != 0)
+        {
+            packet.sendSTAT_ERR(strerror_r(errno, buf, MAXLINE));
+            return;
+        }else{
+            packet.sendSTAT_OK(*iter + "is removed");
+            return;
+        }
+    }
+}
+
+void SrvPI::cmdPWD()
+{
+    printf("PWD request\n");
+    if(!packet.getSBody().empty())
+    {
+        if(packet.getSBody() == "-a")
+            packet.sendSTAT_OK((userRootDir + userRCWD).c_str());
+        else
+            packet.sendSTAT_ERR("command format error");
+    }else{
+        packet.sendSTAT_OK(("~" + userRCWD).c_str());
+    }
+}
+
+void SrvPI::cmdMKDIR()
+{
+    printf("MKDIR request\n");
+    vector<string> paramVector;
+    split(packet.getSBody(), DELIMITER, paramVector);
+    string msg_o;
+    if(combineAndValidatePath(MKDIR, paramVector[0], msg_o, this->abspath) < 0)
+    {
+        packet.sendSTAT_ERR(msg_o.c_str());
+        return;
+    }else{
+        string path = this->abspath;
+        char buf[MAXLINE];
+        if(mkdir(path.c_str(), 0777) == -1)
+        {
+            msg_o += "system call (mkdir): ";
+            msg_o += strerror_r(errno, buf, MAXLINE);
+            packet.sendSTAT_ERR(msg_o.c_str());
+        }else{
+            packet.sendSTAT_OK("Dir [" + paramVector[0] + "] created");
+        }
+    }
+}
+
+void SrvPI::cmdSHELL()
+{
+    printf("SHELL request\n");
+
+    char buf[MAXLINE];
+    vector<string> paramVector;
+    split(packet.getSBody(), DELIMITER, paramVector);
+
+    string curpath = userRootDir + (userRCWD == "/" ? "/" : userRCWD + "/");
+    string shellCmdStr = "cd " + curpath + ";";
+    auto it = paramVector.begin();
+    shellCmdStr += *it;
+    for(++it; it != paramVector.end(); ++it)
+    {
+        if((*it)[0] == '-')
+            shellCmdStr += " " + *it;
+        else{
+            string msg_o;
+            if(combineAndValidatePath(SHELL, *it, msg_o, this->abspath) < 0)
+            {
+                packet.sendSTAT_ERR(msg_o.c_str());
+                return;
+            }else{
+                string path = userRootDir + (userRCWD == "/" ? "/" : userRCWD + "/") + *it;
+                shellCmdStr += " " + path;
+            }
+        }
+    }
+
+    shellCmdStr += " 2>&1";
+    cout << shellCmdStr << endl;
+    FILE * fp = popen(shellCmdStr.c_str(), "r");
+    //FILE * fp = popen("cd /home/AprilFTP/anonymous", "r");
+    //FILE * fp_ = fopen("cd /home/AprilFTP/anonymous/delete", "w");
+    if(fp == NULL)
+    {
+        packet.sendSTAT_ERR(strerror_r(errno, buf, MAXLINE));
+        return;
+    }
+
+    char body[PBODYCAP] = {0};
+    int n;
+    packet.sendSTAT_OK();
+    while( (n = fread(body, sizeof(char), PBODYCAP, fp)) > 0)
+    {
+        packet.sendDATA_TEXT(n, body);
+    }
+    pclose(fp);
+    //fclose(fp_);
+    packet.sendSTAT_EOT();
+}
 
 int SrvPI::combineAndValidatePath(uint16_t cmdid, string userinput, string& msg_o, string & abspath_o)
 {

@@ -398,7 +398,7 @@ void Packet::sendSTAT_EOT()
     //send EOF
     this->reset(HPACKET);
     char buf[MAXLINE];
-    snprintf(buf, MAXLINE, "\033[32mEnd of Transfer\033[0m");
+    snprintf(buf, MAXLINE, "\033[32mEnd of transfer\033[0m");
     this->fillStat(STAT_EOT, strlen(buf), buf);
     this->htonp();
     ppi->sendOnePacket(this->ps, PACKSIZE);

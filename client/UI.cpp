@@ -8,13 +8,18 @@ map<const string, const uint16_t> UI::cmdMap = {
     {"GET",         GET},
     {"LS",          LS},
     {"LLS",         LLS},
+    {"CD",          CD},
     {"LCD",         LCD},
+    {"RM",          RM},
     {"LRM",         LRM},
+    {"PWD",         PWD},
     {"LPWD",        LPWD},
+    {"MKDIR",       MKDIR},
     {"LMKDIR",      LMKDIR},
     {"QUIT",        QUIT},
     {"HELP",        HELP},
 
+    {"SHELL",       SHELL},
     {"LSHELL",      LSHELL}
 };
 

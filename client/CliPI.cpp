@@ -8,14 +8,19 @@ std::map<string, string> CliPI::helpMap = {
                 {"GET",     "get [remote-file] [local-file]"},
                 {"PUT",     "put [local-file]  [remote-file]"},
                 {"LS",      "ls [remote-dir]"},
-                {"LLS",     "lls same as local ls"},
+                {"LLS",     "lls [local-dir]"},
+                {"CD",      "cd [remote-dir]"},
                 {"LCD",     "lcd [local-dir]"},
-                {"LRM",     "lrm same as local rm"},
-                {"LPWD",    "lpwd same as local pwd"},
-                {"LMKDIR",  "lmkdir same as local mkdir"},
+                {"RM",      "rm [remote-dir]"},
+                {"LRM",     "lrm [local-dir]"},
+                {"PWD",     "pwd [-a]"},
+                {"LPWD",    "lpwd [-a]"},
+                {"MKDIR",   "mkdir [remote-dir]"},
+                {"LMKDIR",  "lmkdir [local-dir]"},
                 {"QUIT",    "quit"},
                 {"HELP",    "help [cmd]"},
-                {"LSHELL",  "shell same as local shell"}
+                {"SHELL",   "shell [remote-shell-cmd]"},
+                {"LSHELL",  "lshell [local-shell-cmd]"}
 };
 
 CliPI::CliPI(const char *host) : packet(this), readpacket(this)
@@ -152,17 +157,32 @@ void CliPI::run(uint16_t cmdid, std::vector<string> & paramVector)
         case LLS:
             cmdLLS(paramVector);
             break;
+        case CD:
+            cmdCD(paramVector);
+            break;
         case LCD:
             cmdLCD(paramVector);
+            break;
+        case RM:
+            cmdRM(paramVector);
             break;
         case LRM:
             cmdLRM(paramVector);
             break;
+        case PWD:
+            cmdPWD(paramVector);
+            break;
         case LPWD:
             cmdLPWD(paramVector);
             break;
+        case MKDIR:
+            cmdMKDIR(paramVector);
+            break;
         case LMKDIR:
             cmdLMKDIR(paramVector);
+            break;
+        case SHELL:
+            cmdSHELL(paramVector);
             break;
         case LSHELL:
             cmdLSHELL(paramVector);
@@ -577,6 +597,35 @@ void CliPI::cmdLLS(std::vector<string> & paramVector)
     }
 }
 
+void CliPI::cmdCD(std::vector<string> & paramVector)
+{
+    if(paramVector.empty() || paramVector.size() != 1)
+    {
+        std::cout << "Usage: " << helpMap["CD"] << std::endl;
+        return;
+    }
+    packet.sendCMD(CD, getEncodedParams(paramVector));
+
+    recvOnePacket();
+    if(packet.getTagid() == TAG_STAT)
+    {
+        if(packet.getStatid() == STAT_OK)
+        {
+            cout << packet.getSBody() << endl;
+            return;
+        }else if(packet.getStatid() == STAT_ERR){
+            cout << packet.getSBody() << endl;
+            return;
+        }else{
+            Error::msg("unknow statid %d", packet.getStatid());
+            return;
+        }
+    }else{
+        Error::msg("unknow tagid %d", packet.getTagid());
+        return;
+    }
+}
+
 void CliPI::cmdLCD(std::vector<string> & paramVector)
 {
     if(paramVector.empty() || paramVector.size() != 1)
@@ -594,6 +643,39 @@ void CliPI::cmdLCD(std::vector<string> & paramVector)
     }
 }
 
+void CliPI::cmdRM(std::vector<string> & paramVector)
+{
+    if(paramVector.empty() || paramVector.size() != 1)
+    {
+        if(paramVector.size() != 2 && paramVector[0][0] != '-')
+        {
+            std::cout << "Usage: " << helpMap["RM"] << std::endl;
+            return;
+        }
+    }
+    packet.sendCMD(RM, getEncodedParams(paramVector));
+
+    recvOnePacket();
+    if(packet.getTagid() == TAG_STAT)
+    {
+        if(packet.getStatid() == STAT_OK)
+        {
+            cout << packet.getSBody() << endl;
+            return;
+        }else if(packet.getStatid() == STAT_ERR){
+            cout << packet.getSBody() << endl;
+            return;
+        }else{
+            Error::msg("unknow statid %d", packet.getStatid());
+            return;
+        }
+    }else{
+        Error::msg("unknow tagid %d", packet.getTagid());
+        return;
+    }
+}
+
+
 void CliPI::cmdLRM(std::vector<string> & paramVector)
 {
     string shellCMD = "rm";
@@ -604,6 +686,39 @@ void CliPI::cmdLRM(std::vector<string> & paramVector)
     {
         char buf[MAXLINE];
         std::cout << "system(): " << strerror_r(errno, buf, MAXLINE) << std::endl;
+    }
+}
+
+void CliPI::cmdPWD(std::vector<string> & paramVector)
+{
+    if(paramVector.size() > 1)
+    {
+        std::cout << "Usage: " << helpMap["PWD"] << std::endl;
+        return;
+    }else if(paramVector.size() == 1 && paramVector[0] != "-a")
+    {
+        std::cout << "Usage: " << helpMap["PWD"] << std::endl;
+        return;
+    }
+    packet.sendCMD(PWD, getEncodedParams(paramVector));
+
+    recvOnePacket();
+    if(packet.getTagid() == TAG_STAT)
+    {
+        if(packet.getStatid() == STAT_OK)
+        {
+            cout << packet.getSBody() << endl;
+            return;
+        }else if(packet.getStatid() == STAT_ERR){
+            cout << packet.getSBody() << endl;
+            return;
+        }else{
+            Error::msg("unknow statid %d", packet.getStatid());
+            return;
+        }
+    }else{
+        Error::msg("unknow tagid %d", packet.getTagid());
+        return;
     }
 }
 
@@ -619,6 +734,36 @@ void CliPI::cmdLPWD(std::vector<string> & paramVector)
         std::cout << "system(): " << strerror_r(errno, buf, MAXLINE) << std::endl;
     }
 }
+
+void CliPI::cmdMKDIR(std::vector<string> & paramVector)
+{
+    if(paramVector.empty() || paramVector.size() != 1)
+    {
+        std::cout << "Usage: " << helpMap["MKDIR"] << std::endl;
+        return;
+    }
+    packet.sendCMD(MKDIR, getEncodedParams(paramVector));
+
+    recvOnePacket();
+    if(packet.getTagid() == TAG_STAT)
+    {
+        if(packet.getStatid() == STAT_OK)
+        {
+            cout << packet.getSBody() << endl;
+            return;
+        }else if(packet.getStatid() == STAT_ERR){
+            cout << packet.getSBody() << endl;
+            return;
+        }else{
+            Error::msg("unknow statid %d", packet.getStatid());
+            return;
+        }
+    }else{
+        Error::msg("unknow tagid %d", packet.getTagid());
+        return;
+    }
+}
+
 
 bool CliPI::cmdLMKDIR(string path)
 {
@@ -655,6 +800,93 @@ void CliPI::cmdQUIT(std::vector<string> & paramVector)
     }
     Socket::tcpClose(connfd);
     exit(1);
+}
+
+void CliPI::cmdSHELL(std::vector<string> & paramVector)
+{
+    if(paramVector.empty() || paramVector.size() == 0)
+    {
+        std::cout << "Usage: " << helpMap["SHELL"] << std::endl;
+        return;
+    }
+    packet.sendCMD(SHELL, getEncodedParams(paramVector));
+
+    while(recvOnePacket())
+    {
+        switch(packet.getTagid())
+        {
+            case TAG_CMD:
+            {
+                switch(packet.getCmdid())
+                {
+                    case GET:
+                        break;
+                    case LMKDIR:
+                        break;
+                    default:
+                    {
+                        Error::msg("unknow cmdid: %d", packet.getCmdid());
+                        break;
+                    }
+                }
+                break;
+            }
+            case TAG_STAT:
+            {
+                switch(packet.getStatid())
+                {
+                    case STAT_OK:
+                    {
+                        cout << packet.getSBody() << endl;
+                        break;
+                    }
+                    case STAT_ERR:
+                    {
+                        cout << packet.getSBody() << endl;
+                        break;
+                    }
+                    case STAT_EOF:
+                    {
+                        cout << packet.getSBody() << endl;
+                        break;
+                    }
+                    case STAT_EOT:
+                    {
+                        cout << packet.getSBody() << endl;
+                        break;
+                    }
+                    default:
+                    {
+                        Error::msg("unknown statid: %d", packet.getStatid());
+                        break;
+                    }
+                }
+                break;
+            }
+            case TAG_DATA:
+            {
+                switch(packet.getDataid())
+                {
+                    case DATA_TEXT:
+                    {
+                        cout << packet.getSBody() << endl;;
+                        break;
+                    }
+                    default:
+                    {
+                        Error::msg("unknown statid: %d", packet.getStatid());
+                        break;
+                    }
+                }
+                break;
+            }
+            default:
+            {
+                Error::msg("unknown tagid: %d", packet.getTagid());
+                break;
+            }
+        }
+    }
 }
 
 void CliPI::cmdLSHELL(std::vector<string> & paramVector)
