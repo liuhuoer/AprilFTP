@@ -578,33 +578,45 @@ void SrvPI::cmdRM()
     split(packet.getSBody(), DELIMITER, paramVector);
     string msg_o;
 
+    string shellCmdStr;
     vector<string>::iterator iter = paramVector.begin();
-    if(paramVector[0][0] == '-')
+    if(paramVector.size() == 1)
     {
-        if(combineAndValidatePath(RM, *iter, msg_o, this->abspath) < 0)
+        if(combineAndValidatePath(RM, paramVector[0], msg_o, this->abspath) < 0)
         {
             packet.sendSTAT_ERR(msg_o.c_str());
             return;
-        }
-        ++iter;
-    }
-
-    if(combineAndValidatePath(RM, *iter, msg_o, this->abspath) < 0)
-    {
-        packet.sendSTAT_ERR(msg_o.c_str());
-        return;
-    }else{
-        char buf[MAXLINE];
-        string path = this->abspath;
-        if(remove(path.c_str()) != 0)
+        }else{
+            char buf[MAXLINE];
+            string path = this->abspath;
+            if(remove(path.c_str()) != 0)
+            {
+                packet.sendSTAT_ERR(strerror_r(errno, buf, MAXLINE));
+                return;
+            }else{
+                packet.sendSTAT_OK(paramVector[0] + "is removed");
+                return;
+            }
+        }       
+    }else if(paramVector[0] == "-r" && paramVector.size() == 2){
+        if(combineAndValidatePath(RMDIR, paramVector[1], msg_o, this->abspath) < 0)
         {
-            packet.sendSTAT_ERR(strerror_r(errno, buf, MAXLINE));
+            packet.sendSTAT_ERR(msg_o.c_str());
             return;
         }else{
-            packet.sendSTAT_OK(*iter + "is removed");
-            return;
+            string path = this->abspath;
+            shellCmdStr = "rm -rf " + path;
+            if(system(shellCmdStr.c_str()) == -1)
+            {
+                char buf[MAXLINE];
+                packet.sendSTAT_ERR(strerror_r(errno, buf, MAXLINE));
+            }else{
+                packet.sendSTAT_OK("Dir " + paramVector[1] + " removed");
+            }
         }
     }
+
+
 }
 
 void SrvPI::cmdPWD()
