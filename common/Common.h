@@ -24,6 +24,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <queue>
 #include <sstream>
 using namespace std;
 
@@ -145,9 +146,6 @@ enum CmdID
 
     SHELL,
     LSHELL,
-
-    BINARY,
-    ASCII
 };
 
 enum StatID

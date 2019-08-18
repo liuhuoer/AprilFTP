@@ -22,8 +22,14 @@ public:
 
     void cmdUSER();
     void cmdPASS();
+    void cmdUSERADD();
+    void cmdUSERDEL();
+
     void cmdPUT();
+    void cmdRPUT();
     void cmdGET();
+    void cmdRGET();
+    void RGET_iter(string srvRootPath, string cliRootPath);
     bool sizecheck(string & sizestr);
     bool md5check(string & md5str, string newpath);
     void cmdLS();

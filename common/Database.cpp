@@ -149,7 +149,7 @@ bool Database::execute(const char * sql, Database * pDatabase)
         sqlite3_free(zErrMsg);
         return false;
     }else{
-        fprintf(stdout, "\033p32mDatabase execute successfully\033[0m\n");
+        fprintf(stdout, "\033[32mDatabase execute successfully\033[0m\n");
         printResult();
         return true;
     }
@@ -265,7 +265,31 @@ bool Database::update(string tblname, map<string, string> & whereMap, map<string
     /* Excute SQL statment*/
     return execute(sqlSring.c_str(), this);
 }
+bool Database::remove(string tblname, string id)
+{
+    sqlSring.clear();
+    sqlSring += "DELETE FROM ";
+    sqlSring += tblname;
+    sqlSring += " WHERE id = '" + id + "'";
+    return execute(sqlSring.c_str(), this);
+}
 
+bool Database::remove(string tblname, map<string, string> & kvMap)
+{
+    sqlSring.clear();
+    sqlSring += "DELITE FROM ";
+    sqlSring += tblname;
+    sqlSring += " where ";
+
+    map<string, string>::iterator it = kvMap.begin();
+    sqlSring += it->first + " = '" + it->second + "'";
+    for(++it; it != kvMap.end(); ++it)
+        sqlSring += " and " + it->first + " = '" + it->second + "'";
+
+    cout << "remove: " << sqlSring << endl;
+    return execute(sqlSring.c_str(), this);
+}
+ 
 
 void Database::getResult(vector< map<string, string>> & resultMapVector_o)
 {

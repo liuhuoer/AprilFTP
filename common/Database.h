@@ -19,6 +19,8 @@ public:
     bool select(string tblname, map<string, string> & kvMap);
     bool update(string tblname, string id, map<string, string> & kvMap);
     bool update(string tblname, map<string, string> & whereMap, map<string, string> & kvMap);
+    bool remove(string tblname, string id);
+    bool remove(string tblname, map<string, string> & kvMap);
     void getResult(vector<map<string, string>> & resultMapVector_o);
     vector<map<string, string>> & getResult();
 

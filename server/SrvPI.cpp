@@ -167,11 +167,23 @@ void SrvPI::run()
             case PASS:
                 cmdPASS();
                 break;
-            case PUT:
+            case USERADD:
+                cmdUSERADD();
+                break;
+            case USERDEL:
+                cmdUSERDEL();
+                break;
+           case PUT:
                 cmdPUT();
+                break;
+            case RPUT:
+                cmdRPUT();
                 break;
             case GET:
                 cmdGET();
+                break;
+            case RGET:
+                cmdRGET();
                 break;
             case LS:
                 cmdLS();
@@ -250,6 +262,91 @@ void SrvPI::cmdPASS()
                                 + userRCWD);
         }else{
             packet.sendSTAT_ERR("error: username mismatch password");
+        }
+    }else{
+        packet.sendSTAT_ERR("Database select error");
+    }
+}
+void SrvPI::cmdUSERADD()
+{
+    printf("USERADD request\n");
+    if(userID != "1")
+    {
+        packet.sendSTAT_ERR("Permission denied, admin required");
+        return;
+    }
+    vector<string> paramVector;
+    split(packet.getSBody(), DELIMITER, paramVector);
+
+    map<string, string> selectParamMap = { {"username", paramVector[0]}};
+    if(db.select("user", selectParamMap))
+    {
+        vector< map<string, string>> resultMapVector = db.getResult();
+        if(!resultMapVector.empty())
+        {
+            packet.sendSTAT_ERR("User '" + paramVector[0] + "' already exists");
+            return;
+        }
+    }else{
+        packet.sendSTAT_ERR("Database select error");
+    }
+
+    map<string, string> insertParamMap = { {"username", paramVector[0]}, {"password", paramVector[1]}};
+    if(db.insert("user", insertParamMap))
+    {
+        string path = ROOTDIR + paramVector[0];
+        if(mkdir(path.c_str(), 0777) == -1){
+            std::map<string, string> removeParamMap = { {"username", paramVector[0]}};
+            if(db.remove("user", removeParamMap))
+                cout << "Success: DB#user rollback" << endl;
+            else
+                cout << "Error: DB#user rollback" << endl;
+            
+            char buf[MAXLINE];
+            packet.sendSTAT_ERR(strerror_r(errno, buf, MAXLINE));
+        }else{
+            packet.sendSTAT_OK("New user '" + paramVector[0] + "' created");
+        }
+    }else{
+        packet.sendSTAT_ERR("Insert user error in DB");
+    }
+}
+
+void SrvPI::cmdUSERDEL()
+{
+    printf("USERDEL request\n");
+    if(userID != "1")
+    {
+        packet.sendSTAT_ERR("Permission denied, admin required");
+        return;
+    }
+
+    vector<string> paramVector;
+    split(packet.getSBody(), DELIMITER, paramVector);
+
+    map<string, string> selectMap = { {"username", paramVector[0]}};
+    if(db.select("user", selectMap))
+    {
+        vector< map<string, string>> resultMapVector = db.getResult();
+        if(resultMapVector.empty())
+        {
+            packet.sendSTAT_ERR("Cannot find user '" + paramVector[0] + "'");
+            return;
+        }else{
+            if(db.remove("user", resultMapVector[0]["ID"]))
+            {
+                string path = ROOTDIR + paramVector[0];
+                string shellCMD = "rm -rf " + path;
+                if(system(shellCMD.c_str()) == -1)
+                {
+                    char buf[MAXLINE];
+                    packet.sendSTAT_ERR(strerror_r(errno, buf, MAXLINE));
+                }else{
+                    packet.sendSTAT_OK("User '" + paramVector[0] + "' deleted");
+                }
+            }else{
+                packet.sendSTAT_ERR("Database remove error");
+            }
         }
     }else{
         packet.sendSTAT_ERR("Database select error");
@@ -381,6 +478,140 @@ void SrvPI::cmdPUT()
 
 }
 
+void SrvPI::cmdRPUT()
+{
+    printf("RPUT request\n");
+    vector<string> paramVector;
+    split(packet.getSBody(), DELIMITER, paramVector);
+
+    string srvpath;
+    if(paramVector.size() == 1)
+    {
+        vector<string> pathVector;
+        split(paramVector[0], "/", pathVector);
+        srvpath = pathVector.back();
+    }else if(paramVector.size() == 2){
+        srvpath = paramVector[1];
+    }else{
+        packet.sendSTAT_ERR("RPUT params error");
+        return;
+    }
+
+    string msg_o;
+    int m;
+    char buf[MAXLINE];
+    if( (m = combineAndValidatePath(RPUT, srvpath, msg_o, this->abspath)) < 0)
+    {
+        if(m == -2)
+        {
+            packet.sendSTAT_CFM(msg_o.c_str());
+            recvOnePacket();
+            if(packet.getTagid() == TAG_STAT && packet.getStatid() == STAT_CFM)
+            {
+                packet.print();
+                if(packet.getSBody() == "y")
+                {
+                    string shellCMD = "rm -rf " + this->abspath;
+                    if(system(shellCMD.c_str()) == -1)
+                    {
+                        packet.sendSTAT_ERR(strerror_r(errno, buf, MAXLINE));
+                        return;
+                    }else{
+                        packet.sendSTAT_OK("Dir " + this->abspath + "emptied and removed");
+                    }
+                }else
+                    return;
+            }else{
+                Error::msg("STAT_CFM: unknown tagid %d with statid %d", packet.getTagid(), packet.getStatid());
+                return;
+            }
+        }else{
+            packet.sendSTAT_ERR(msg_o.c_str());
+            return;
+        }
+    }else{
+        packet.sendSTAT_OK();
+    }
+
+    while(recvOnePacket())
+    {
+        switch(packet.getTagid())
+        {
+            case TAG_CMD:
+            {
+                switch(packet.getCmdid())
+                {
+                    case PUT:
+                    {
+                        cmdPUT();
+                        break;
+                    }
+                    case MKDIR:
+                    {
+                        cmdMKDIR();
+                        break;
+                    }
+                    default:
+                    {
+                        Error::msg("unknown cmdid: %d", packet.getCmdid());
+                        break;
+                    }
+                }
+                break;
+            }
+            case TAG_STAT:
+            {
+                switch(packet.getStatid())
+                {
+                    case STAT_OK:
+                    {
+                        cout << packet.getSBody() << endl;
+                        break;
+                    }
+                    case STAT_ERR:
+                    {
+                        cerr << packet.getSBody() << endl;
+                        return;
+                    }
+                    case STAT_EOT:
+                    {
+                        cout << packet.getSBody() << endl;
+                        return;
+                    }
+                    default:
+                    {
+                        Error::msg("unknown statid: %d", packet.getStatid());
+                        break;
+                    }
+                }
+                break;
+            }
+            case TAG_DATA:
+            {
+                switch(packet.getDataid())
+                {
+                    case DATA_NAME:
+                    {
+                        cout << "DATA_NAME" << packet.getSBody() << endl;
+                        break;
+                    }
+                    default:
+                    {
+                        Error::msg("unknown statid: %d", packet.getStatid());
+                        break;
+                    }
+                }
+                break;
+            }
+            default:
+            {
+                Error::msg("unknown statid: %d", packet.getTagid());
+                break;
+            }
+        }
+    }
+}
+
 void SrvPI::cmdGET()
 {
     printf("GET request\n");
@@ -411,6 +642,102 @@ void SrvPI::cmdGET()
     srvDTP.sendFile(path.c_str(), 0, 0);
 
     packet.sendSTAT_EOT();
+}
+
+void SrvPI::cmdRGET()
+{
+    printf("RGET request\n");
+    vector<string> paramVector;
+    split(packet.getSBody(), DELIMITER, paramVector);
+
+    string msg_o;
+    if(combineAndValidatePath(RGET, paramVector[0], msg_o, this->abspath) < 0)
+    {
+        packet.sendSTAT_ERR(msg_o.c_str());
+        return;
+    }
+
+    string srvPath = this->abspath;
+    string cliPath;
+    vector<string> pathVector;
+    if(paramVector.size() == 1)
+    {
+        split(paramVector[0], "/", pathVector);
+        cliPath = pathVector.back();
+    }else{
+        cliPath = paramVector[1];
+    }
+
+    RGET_iter(srvPath, cliPath);
+    packet.sendSTAT_EOT();
+}
+
+void SrvPI::RGET_iter(string srvRootPath, string cliRootPath)
+{
+    queue< pair<string, string>> dirQueue;
+    dirQueue.push(pair<string, string>(srvRootPath, cliRootPath));
+
+    while(!dirQueue.empty())
+    {
+        pair<string, string> dirPair = dirQueue.front();
+        string srvPath = dirPair.first;
+        string cliPath = dirPair.second;
+
+        packet.sendCMD_LMKDIR(cliPath);
+        recvOnePacket();
+        if(packet.getTagid() == TAG_STAT)
+        {
+            if(packet.getStatid() == STAT_OK)
+            {
+                dirQueue.pop();
+            }else if(packet.getStatid() == STAT_ERR){
+                Error::msg("error: mkdir %s", cliPath.c_str());
+                return;
+            }else{
+                Error::msg("unknown statid: %d", packet.getStatid());
+                return;
+            }
+        }else{
+            Error::msg("unknown tagid: %d", packet.getTagid());
+            return;
+        }
+
+        DIR * dir = opendir(srvPath.c_str());
+        char buf[MAXLINE];
+        if(!dir)
+        {
+            packet.sendSTAT_ERR(strerror_r(errno, buf, MAXLINE));
+            return;
+        }else{
+            packet.sendSTAT_OK();
+        }
+
+        struct dirent * e;
+        if(srvPath.back() != '/')
+            srvPath += "/";
+        if(cliPath.back() != '/')
+            cliPath += "/";
+        
+        while( (e = readdir(dir)))
+        {
+            if(e->d_type == 4 && strcmp(e->d_name, ".") && strcmp(e->d_name, ".."))
+                dirQueue.push(pair<string, string>(srvPath + e->d_name, cliPath + e->d_name));
+            else if(e->d_type == 8){
+                string str = srvPath + e->d_name;
+                str += DELIMITER;
+                str += cliPath + e->d_name;
+                packet.sendCMD_GET(str);
+                recvOnePacket();
+                if(packet.getTagid() == TAG_CMD && packet.getCmdid() == GET)
+                    cmdGET();
+                else{
+                    Error::msg("Error: cmdGET unknown tagid with %d", packet.getTagid());
+                    packet.print();
+                    return;
+                }
+            }
+        }
+    }
 }
 
 bool SrvPI::sizecheck(string & sizestr)

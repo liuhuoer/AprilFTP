@@ -107,6 +107,43 @@ void Packet::sendCMD(uint16_t cmdid, string sbody)
     ppi->sendOnePacket(this->ps, PACKSIZE);
 }
 
+void Packet::sendCMD_GET(const char * body)
+{
+    this->reset(HPACKET);
+    this->fillCmd(GET, strlen(body), body);
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
+
+void Packet::sendCMD_GET(string sbody)
+{
+    this->reset(HPACKET);
+    this->fillCmd(GET, sbody.size(), sbody.c_str());
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
+
+void Packet::sendCMD_LMKDIR(const char * body)
+{
+    this->reset(HPACKET);
+    this->fillCmd(LMKDIR, strlen(body), body);
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
+
+void Packet::sendCMD_LMKDIR(string sbody)
+{
+    this->reset(HPACKET);
+    this->fillCmd(LMKDIR, sbody.size(), sbody.c_str());
+    this->htonp();
+    ppi->sendOnePacket(this->ps, PACKSIZE);
+}
+
+
+
 void Packet::sendDATA_FILE(uint32_t nslice, uint32_t sindex, uint16_t bsize, const char * body)
 {
     this->reset(HPACKET);

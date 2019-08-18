@@ -29,6 +29,10 @@ public:
     void pprint();
 
     void sendCMD(uint16_t cmdid, string sbody);
+    void sendCMD_GET(const char * body);
+    void sendCMD_GET(string sbody);
+    void sendCMD_LMKDIR(const char * body);
+    void sendCMD_LMKDIR(string sbody);
 
     void sendDATA_FILE(uint32_t nslice, uint32_t sindex, uint16_t bsize, const char * body);
 

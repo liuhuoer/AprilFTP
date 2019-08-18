@@ -20,9 +20,14 @@ public:
 
     bool cmdUSER(std::vector<string> & cmdVector);
     bool cmdPASS(std::vector<string> & cmdVector);
+    void cmdUSERADD(std::vector<string> & cmdVector);
+    void cmdUSERDEL(std::vector<string> & cmdVector);
 
     void cmdGET(std::vector<string> & cmdVector);
+    void cmdRGET(std::vector<string> & cmdVector);
     void cmdPUT(std::vector<string> & cmdVector);
+    void cmdRPUT(std::vector<string> & cmdVector);
+    void RPUT_iter(string srvRootPath, string cliRootPath);
     void cmdLS(std::vector<string> & cmdVector);
     void cmdLLS(std::vector<string> & cmdVector);
     void cmdCD(std::vector<string> & cmdVector);
@@ -31,7 +36,7 @@ public:
     void cmdLRM(std::vector<string> & cmdVector);
     void cmdPWD(std::vector<string> & cmdVector);
     void cmdLPWD(std::vector<string> & cmdVector);
-    void cmdMKDIR(std::vector<string> & cmdVector);
+    bool cmdMKDIR(std::vector<string> & cmdVector);
     void cmdLMKDIR(std::vector<string> & cmdVector);
     bool cmdLMKDIR(string path);
     void cmdSHELL(std::vector<string> & cmdVector);
